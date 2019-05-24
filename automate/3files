@@ -1,0 +1,155 @@
+#집에 가기 전에 3개의 파일을 열어서 업데이트만 해주고 닫습니다.
+
+import win32com.client
+import calendar
+import time
+import easygui
+#win32com.client.Dispatch('excel.Application').Quit()
+
+#원달러종가청산관리
+
+xl = win32com.client.Dispatch('excel.Application')
+xl.visible = True
+xl.DisplayAlerts = False
+wb = xl.Workbooks.Open('//Fos_00/!동기화/원달러종가청산관리.xlsm')
+ws = wb.Worksheets('원달러종가청산')
+
+#어제날짜 행 찾아야 하는데
+def yesterday():
+    today = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+    todayo = calendar.weekday(int(today.split('-')[0]), int(today.split('-')[1]), int(today.split('-')[2]))
+    if todayo == 0:
+        yesterdate = (int(today.split('-')[0]),int(today.split('-')[1]),int(today.split('-')[2])-3,0,0,0,0,0,0)
+        yester = time.strftime('%Y-%m-%d', yesterdate)
+    elif todayo != 0:
+        yesterdate = (int(today.split('-')[0]),int(today.split('-')[1]),int(today.split('-')[2])-1,0,0,0,0,0,0)
+        yester = time.strftime('%Y-%m-%d', yesterdate)
+    return yester
+
+used = ws.UsedRange
+nrows = used.Rows.count
+today = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+rows = []
+for i in range(600,nrows):
+    rows.append(str(ws.Cells(i,1).Value)[:10])
+
+yester_index = 600+rows.index(yesterday())
+
+#매크로 실행
+xl.Application.Run('원달러종가청산관리.xlsm!Module1.종가청산관리')
+xl.Workbooks('원달러시세').Close(SaveChanges=1)
+time.sleep(2)
+
+ws.Cells(yester_index+1,1).Value = today
+#잔존일수
+if ws.Cells(yester_index,2).Value == 0:
+    ws.Cells(yester_index+1,2).Value = int(easygui.enterbox("새로운 잔존일수는?"))
+else:
+    ws.Cells(yester_index+1,2).Value = ws.Cells(yester_index,2).Value -1
+#오늘의 포지션은?
+ws.Cells(yester_index+1,3).Value = easygui.enterbox("오늘의 포지션은?B/S")
+#맨 끝 드래그
+startpo = ws.Range(ws.Cells(yester_index,37),ws.Cells(yester_index,39))
+endpo = ws.Range(ws.Cells(yester_index+1,37),ws.Cells(yester_index+1,39))
+
+startpo.AutoFill(ws.Range(startpo,endpo))
+ws.Cells(yester_index+2,1).Select()
+
+xl.ActiveWorkBook.Save()
+easygui.msgbox("저장버튼을 누르세요")
+time.sleep(5)
+
+xl.Quit()
+
+time.sleep(5)
+
+#######################################################################
+#종가청산관리
+xl = win32com.client.Dispatch('excel.Application')
+xl.visible= True
+xl.DisplayAlerts = False
+wb = xl.Workbooks.Open('//Fos_00/!동기화/종가청산관리.xlsm')
+ws = wb.Worksheets('종가청산(20170519이후)')
+
+used = ws.UsedRange
+nrows = used.Rows.count
+today = time.strftime('%Y-%m-%d',time.localtime(time.time()))
+rows = []
+for i in range(600, nrows):
+    rows.append(str(ws.Cells(i, 1).Value)[:10])
+yester_index = 600+rows.index(yesterday())
+
+xl.Application.Run('종가청산관리')
+time.sleep(1)
+xl.Workbooks('시세').Close(SaveChanges=1)
+
+ws.Cells(yester_index+1,1).Value = today
+#잔존일수
+if ws.Cells(yester_index,2).Value ==0:
+    ws.Cells(yester_index+1,2).Value = int(easygui.enterbox("새로운 잔존 일수는?"))
+elif ws.Cells(yester_index,2).Value !=0:
+    ws.Cells(yester_index+1,2).Value = ws.Cells(yester_index,2).Value -1
+#보유 포지션
+a = int(easygui.enterbox("B 갯수?"))
+b = int(easygui.enterbox("S 갯수?"))
+k = [3,5,7,9]
+kk = [4,6,8,10]
+for i in k:
+    ws.Cells(yester_index+1,i).Value = a
+for i in kk:
+    ws.Cells(yester_index+1,i).Value = b
+
+if a!=0:
+    ws.Cells(yester_index+1,11).Value = "B"
+elif b!=0:
+    ws.Cells(yester_index+1,11).Value = "S"
+else:
+    ws.Cells(yester_index+1,11).Value = None
+
+#종가청산 시작 시간 과 종료시간 드래그
+ws.Cells(yester_index,12).AutoFill(ws.Range(ws.Cells(yester_index,12),ws.Cells(yester_index+1,12)))
+ws.Cells(yester_index,13).AutoFill(ws.Range(ws.Cells(yester_index,13),ws.Cells(yester_index+1,13)))
+
+ws.Cells(yester_index,54).Select()
+time.sleep(2)
+ws.Cells(yester_index,61).Select()
+startpo = ws.Range(ws.Cells(yester_index,54),ws.Cells(yester_index,61))
+endpo = ws.Range(ws.Cells(yester_index+1,54),ws.Cells(yester_index+1,61))
+
+#끝 부분 드래그
+startpo.AutoFill(ws.Range(startpo,endpo))
+
+ws.Cells(yester_index+2,1).Select()
+easygui.msgbox("저장버튼을 누르세요")
+time.sleep(5)
+xl.Quit()
+
+
+time.sleep(5)
+
+##########################################################################
+#손익통계분석
+xl = win32com.client.Dispatch("excel.Application")
+xl.visible = True
+xl.DisplayAlerts = False
+wb = xl.Workbooks.Open('//Fos_00/!동기화/0손익통계분석.xlsm')
+ws = wb.Worksheets('만기누적')
+time.sleep(10)
+used = ws.UsedRange
+nrows = used.Rows.count
+rows = []
+for i in range(3900,nrows):
+    rows.append(str(ws.Cells(i, 1).Value)[:10])
+
+today_index = 3901+rows.index(yesterday())
+
+startpo = ws.Range(ws.Cells(today_index,2),ws.Cells(today_index,18))
+startpo.Select()
+endpo = ws.Range(ws.Cells(today_index+1,2),ws.Cells(today_index+1,18))
+endpo.Select()
+startpo.AutoFill(ws.Range(startpo,endpo))
+
+easygui.msgbox('저장버튼을 누르세요')
+
+time.sleep(5)
+xl.Quit()

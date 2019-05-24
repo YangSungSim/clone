@@ -1,0 +1,156 @@
+#당일 시스템 로직 손익 정산 파일을 종합 파일에다가 옮겨주는 코드
+
+import os
+import glob
+import time
+from datetime import date
+import shutil
+import win32com.client
+import xlrd
+from xlrd import xldate_as_tuple
+import easygui
+import shutil
+
+
+Today = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+src = 'C:/원달러EXPORT/Account/'
+
+
+#파일 옮기기
+src2 = 'C:/Account/'     #원달러 pc 주소 'C:/Account'
+dst = 'C:/원달러EXPORT/Account/'
+
+for ff in os.listdir(src):
+    srcFF = src2+ff
+    if os.path.isfile(srcFF):
+        shutil.copy(srcFF, dst+ff)
+
+#xlsx내 파일을 삭제시키기
+for i in glob.glob('C:/원달러EXPORT/Account/xlsx/*.xlsx'):
+    os.unlink(i)
+
+# 5. $원달러Account.xlsm 열어서 매크로 run 시키기
+try:
+    xl = win32com.client.Dispatch('excel.Application')
+    xl.visible = True
+    wb = xl.Workbooks.Open('C:/원달러EXPORT/5. $원달러Account.xlsm')
+    xl.DisplayAlerts = False
+    ws = wb.Worksheets('Major')
+    xl.Application.Run('ChangeXlsx')
+
+    xl.ActiveWorkBook.Save()
+
+finally:
+    xl.Application.Quit()
+
+
+#[여기서부터] 오늘 날짜 행은 몇 번
+wb = xlrd.open_workbook('//Fos_00/!동기화/0원달러선물정산.xlsm')
+sh = wb.sheet_by_index(2)
+sh2 = wb.sheet_by_index(3)
+
+#정산 sheet에서 오늘 날짜의 행번호는 몇 번일까?
+row_list1 = []
+for i in sh.col_values(0)[2100:]:
+    try:
+        date_cell = xldate_as_tuple(i, wb.datemode)
+        date_cell = date(*date_cell[0:3]).strftime('%Y-%m-%d')
+        row_list1.append(date_cell)
+    except TypeError:
+        break
+
+#로직 모니터링에서 오늘 날짜 행 번
+row_list2 = []
+for i in sh2.col_values(0)[1270:]:
+    try:
+        date_cell = xldate_as_tuple(i, wb.datemode)
+        date_cell = date(*date_cell[0:3]).strftime('%Y-%m-%d')
+        row_list2.append(date_cell)
+    except TypeError:
+        break
+
+today_cell = len(row_list1)+2101
+today_cell2 = len(row_list2)+1271
+
+#원달러 선물정산을 열고 매크로 run 시키기
+try:
+    xl = win32com.client.Dispatch('excel.Application')
+    xl.visible = True
+    xl.DisplayAlerts = False
+    wb = xl.Workbooks.Open('//Fos_00/!동기화/0원달러선물정산.xlsm')
+    ws = wb.Worksheets('정산')
+    ws2 = wb.Worksheets('로직모니터링')
+
+    ws.Select()
+    ws.Cells(today_cell,1).Select()
+    xl.Application.Run("0원달러선물정산.xlsm!Module1.원달러매매손익")
+    time.sleep(1)
+
+    #셀 select 를 모니터링 sheet에 오늘날짜 행 란에다 가져다놔야 함.
+    ws2.Select()
+    ws2.Cells(today_cell2,1).Select()
+    xl.Application.Run("0원달러선물정산.xlsm!Module2.원달러로직모니터링")
+
+    ws.Select()
+    ws.Cells(today_cell,1).Select()
+
+    messagetime = easygui.msgbox("저장버튼을 누르세요")
+    time.sleep(5)
+finally:
+    xl.Application.Quit()
+
+
+##############################################################
+
+try:
+    xl = win32com.client.Dispatch('excel.Application')
+    xl.visible = True
+    wb = xl.Workbooks.Open('//Fos_00/!동기화/0원달러선물정산.xlsm')
+    xl.DisplayAlerts = False
+    ws = wb.Worksheets('정산')
+    ws2 = wb.Worksheets('로직모니터링')
+
+
+
+    #M열  차액 위에서 아래로 드래그
+    ws.Select()
+    ws.Cells(today_cell-1,13).AutoFill(ws.Range(ws.Cells(today_cell-1,13),ws.Cells(today_cell,13)))
+
+    #0값 채우기
+
+    for i in range(14,35):
+        if ws.Cells(today_cell,i).Value is None:
+            ws.Cells(today_cell,i).Value = "0"
+
+    #로직 모니터링에도 잔존날짜 -1시켜서 저장
+    ws2.Select()
+    ws2.Cells(today_cell2,2).Value = ws2.Cells(today_cell2-1,2).Value -1
+    ws.Select()
+    if ws.Cells(today_cell-1,2).Value == 0:
+        ws2.Select()
+        ws2.Cells(today_cell2,2).Value = int(easygui.enterbox('새로운 잔존일수는?'))
+
+    #0값 채우기
+    ws2.Select()
+    for i in range(6,24):
+        if ws2.Cells(today_cell2,i).Value == "":
+            ws2.Cells(today_cell2,i).Value="0"
+
+    ws2.Cells(today_cell2+1,1).Select()
+
+    #정산 sheet 에서 드래그 후 저장
+    ws.Select()
+    startpoint1 = ws.Range(ws.Cells(today_cell,36),ws.Cells(today_cell,44))
+    endpoint1 = ws.Range(ws.Cells(today_cell+1, 36),ws.Cells(today_cell+1,44))
+
+    #채우기 실행
+    startpoint1.AutoFill(ws.Range(startpoint1,endpoint1))
+
+    ws.Cells(today_cell+1,1).Select()
+
+    easygui.msgbox("저장버튼 누르세요")
+    time.sleep(5)
+finally:
+    xl.Application.Quit()
+
+#win32com.client.Dispatch("excel.Application").Quit()  #강제종료용

@@ -1,0 +1,106 @@
+import datetime
+from datetime import date
+import sys
+import xlrd
+from xlrd import xldate_as_tuple,open_workbook
+
+
+try:
+    wb =xlrd.open_workbook("//Fos_00/!동기화/0선물시세데이타.xlsm")
+    sh = wb.sheet_by_index(0)  #sheet_by_name('선물시세')
+except IOError:
+    print("file error, please check excel file")
+    exit()
+
+row_list = []
+for i in sh.col_values(0)[4180:]:
+    try:
+        date_cell = xldate_as_tuple(i,wb.datemode)  #에러가 나는 구간.
+        date_cell = date(*date_cell[0:3]).strftime('%m/%d/%Y')  #datetime이 아니라 date 함수로 지정
+        row_list.append(date_cell)
+    except TypeError:
+        break  #sys.exit()를 쓰면 for문이 무위로 돌아감.
+
+
+sum1_list = []
+for sum1_cell in sh.col_values(66)[4180:]:
+    try:
+        sum1_list.append(str(sum1_cell)[:-5])
+    except TypeError:
+        break
+
+
+sum2_list= []
+for sum2_cell in sh.col_values(64)[4180:]:
+    sum2_list.append(str(sum2_cell)[:-5])
+    if int(sum2_cell)//1==0:
+        break
+
+
+sum1 = []
+for i in range(len(row_list)):
+    sum1.append([row_list[i],sum1_list[i]])
+
+
+sum2 = []
+for i in range(len(row_list)):
+    sum2.append([row_list[i],sum2_list[i]])
+
+
+#메모장에다가 입력시키기
+
+sum1_txt = open('//Fos_00/!동기화/sum1.txt','r')
+sum2_txt = open('//Fos_00/!동기화/sum2.txt','r')
+
+i = sum1_txt.readlines()
+lt = i[len(i)-1].split(',')[0]   #메모장의 맨 마지막 날짜 추출
+
+
+for i in range(len(sum1)):
+    if lt==sum1[i][0]:         #메모장의 맨 마지막 날짜와 sum1리스트 날짜가 같으면
+        k = i+1
+
+memo = []
+for i in range(k,len(sum1)):   #메모장 다음 부터 sum1의 마지막까지
+    memo.append(sum1[i])
+
+
+#메모장에 적혀야 할 것
+
+i = sum2_txt.readlines()
+it = i[len(i)-1].split(',')[0]
+
+for i in range(len(sum2)):
+    if it == sum2[i][0]:
+        k = i+1
+
+memo2=[]
+for i in range(k,len(sum2)):
+    memo2.append(sum2[i])
+
+print(memo2)
+sum1_txt.close()
+sum2_txt.close()
+
+#메모장 기록
+
+
+sum1_txt = open('//Fos_00/!동기화/sum1.txt','a')
+sum2_txt = open('//Fos_00/!동기화/sum2.txt','a')
+
+
+for i in range(len(memo)-1):
+    data1='\n'+str(memo[i][0])+',1630,'+str(memo[i][1])+','+str(memo[i][1])+','+str(memo[i][1])+','+str(memo[i][1])
+    sum1_txt.write(data1)
+
+for i in range(len(memo2)-1):
+    if int(memo2[i][1])>0:
+        data2='\n'+str(memo2[i][0])+',1630,'+'0,'+'0,'+str(memo2[i][1])+','+str(memo2[i][1])
+        sum2_txt.write(data2)
+    elif int(memo2[i][1])<0:
+        data2='\n'+str(memo2[i][0])+',1630,'+'0,'+str(memo2[i][1])+',0,'+str(memo2[i][1])
+        sum2_txt.write(data2)
+
+
+sum1_txt.close()
+sum2_txt.close()

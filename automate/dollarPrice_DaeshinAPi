@@ -1,0 +1,133 @@
+#대신 증권 API에서 원달러 선물의 당일 시가,고가,저가, 종가를 불러오는 코드
+#거래량은 직접 손으로 입력하기 위하여 easygui 사용
+
+from datetime import date
+import win32com.client
+import xlrd
+from xlrd import xldate_as_tuple, open_workbook
+import calendar
+import easygui
+import datetime
+
+#어제 날짜 행의 주소
+wb = xlrd.open_workbook('//Fos_00/!동기화/0원달러선물시세데이타.xlsx')
+sh = wb.sheet_by_index(0)
+
+row_list = []
+for i in sh.col_values(0)[4000:]:
+    try:
+        date_cell = xldate_as_tuple(i,wb.datemode)
+        date_cell = date(*date_cell[0:3]).strftime('%Y%m%d')
+        row_list.append(date_cell)
+    except TypeError:
+        break
+
+
+startt = win32com.client.Dispatch("CpUtil.CpCybos")
+value = startt.Isconnect   #연결되어 있으면 1 반환
+
+cani = win32com.client.Dispatch("CpUtil.CpFutureCode")  #선물 코드 조회작업용 메서드
+getcode = cani.CodeToName('17500')   #미국 달러 연결선물 코드
+
+
+sishei = win32com.client.Dispatch("dscbo1.FutureWeek1")
+sishei.SetInputValue(0,"17500")
+sishei.BlockRequest()
+
+date = sishei.GetDataValue(0,1)
+
+def date_format(date):
+    rule = str(date)
+    yyyy = rule[:4]
+    mm = rule[4:6]
+    dd = rule[6:]
+    return "{}{}{}".format(yyyy,mm,dd)
+
+dated = date_format(date)  #어제 날짜
+
+count = 4001
+for i in row_list:
+    if i==dated:
+        cell_address = count
+        break
+    else:
+        count+=1
+
+#어제 날짜 셀 행 cell_address
+
+def date_format2(date):
+    rule = str(date)
+    yyyy = rule[:4]
+    mm = rule[4:6]
+    dd = rule[6:]
+    week = calendar.weekday(int(yyyy),int(mm),int(dd))
+    day = ['월','화','수','목','금']
+    return day[week]
+
+
+#원달러 시고저종, 날짜 를 불러오자.
+
+current = sishei.GetDataValue(1,0)
+current1 = sishei.GetDataValue(2,0)
+current2 = sishei.GetDataValue(3,0)
+current3 = sishei.GetDataValue(4,0)
+
+#오늘 날짜 시고저종
+
+siga = str(round(current*10)/10)+'0'
+goga = str(round(current1*10)/10)+'0'
+geoga = str(round(current2*10)/10)+'0'
+jongga = str(round(current3*10)/10)+'0'
+
+
+
+#거래량 손입력
+volume = easygui.enterbox("달러선물 거래량은?")
+
+#엑셀을 열어서 데이터를 집어넣자
+
+try:
+    xl = win32com.client.Dispatch("Excel.Application")
+    xl_open = xl.Workbooks.Open("//Fos_00/!동기화/0원달러선물시세데이타.xlsx")
+    xl.visible = True
+    ws = xl_open.WorkSheets("Data")
+    ws.Cells(cell_address+1,1).Value = ws.Cells(cell_address,1).Value + datetime.timedelta(days=3)
+
+    ws.Cells(cell_address + 1,11).Value = siga
+    ws.Cells(cell_address + 1,12).Value = goga
+    ws.Cells(cell_address + 1,13).Value = geoga
+    ws.Cells(cell_address + 1,14).Value = jongga
+    ws.Cells(cell_address + 1,15).Value = volume
+
+    date_startpoint = ws.Cells(cell_address, 1)
+    date_endpoint = ws.Cells(cell_address+1, 1)
+
+
+    startpoint1 = ws.Range(ws.Cells(cell_address, 2), ws.Cells(cell_address, 10))
+    endpoint1 = ws.Range(ws.Cells(cell_address + 1, 2), ws.Cells(cell_address + 1, 10))
+
+    startpoint2 = ws.Range(ws.Cells(cell_address - 1, 16), ws.Cells(cell_address - 1, 19))
+    endpoint2 = ws.Range(ws.Cells(cell_address + 1, 16), ws.Cells(cell_address + 1, 19))
+
+    startpoint3 = ws.Range(ws.Cells(cell_address - 1, 23), ws.Cells(cell_address - 1, 30))
+    endpoint3 = ws.Range(ws.Cells(cell_address + 1, 23), ws.Cells(cell_address + 1, 30))
+
+    # 날짜 금요일 걸러내기
+    # 채우기 해야 하는데..
+
+    if date_format2(date) == "금":
+        ws.Cells(cell_address + 1, 1).Value = ws.Cells(cell_address, 1).Value + datetime.timedelta(days=3)
+
+    elif date_format2(date) != "금":
+        date_startpoint.AutoFill(ws.Range(date_startpoint,date_endpoint))
+
+    startpoint1.AutoFill(ws.Range(startpoint1, endpoint1))
+    startpoint2.AutoFill(ws.Range(startpoint2, endpoint2))
+    startpoint3.AutoFill(ws.Range(startpoint3, endpoint3))
+
+finally:
+    xl_open.Save()
+    xl.Quit()
+
+
+

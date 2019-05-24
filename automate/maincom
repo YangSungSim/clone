@@ -1,0 +1,77 @@
+import win32com.client
+import time
+import glob, shutil
+import os, easygui
+
+#파일 옮기기
+src2 = 'C:/Account/'   #본컴 Account
+dst = '//Fos_00/공유/Account/Account/'
+for ff in os.listdir(src2):
+    srcff = src2+ff
+    if os.path.isfile(srcff):
+        shutil.copy(srcff,dst+ff)
+
+
+#파일 지우기
+for i in glob.glob('//Fos_00/공유/Account/Account/xlsx/*.xlsx'):
+    os.unlink(i)
+
+#$account.xlsm 파일 매크로 run
+excel = win32com.client.Dispatch("excel.application")
+excel.visible = True
+excel.DisplayAlerts = False
+wb = excel.Workbooks.Open('//Fos_00/공유/Account/$Account.xlsm')
+ws = wb.Worksheets('Major')
+excel.Application.run('ChangeXlsx')
+time.sleep(3)
+
+#$Account 파일을 닫으면 안됨.
+
+#선물정산 open 매크로 run
+xl = win32com.client.Dispatch('excel.Application')
+xl.Visible = True
+xl.DisplayAlerts = False
+wb = xl.Workbooks.Open('//Fos_00/!동기화/0선물정산.xlsm')
+ws = wb.Worksheets('매매손익')
+ws2 = wb.Worksheets('자금운용')
+time.sleep(3)
+
+
+ws.Select()
+
+#today_cell number
+used = ws.UsedRange
+nrows = used.Rows.count
+list = []
+for i in range(4638,nrows):
+    list.append(str(ws.Cells(i,1).Value)[:10])
+
+today = time.strftime('%Y-%m-%d',time.localtime(time.time()))
+
+today_index = 4638+list.index(today)
+ws.Cells(today_index,8).Select()
+
+xl.Application.run('선물정산')
+time.sleep(5)
+
+ws2.Select()
+
+used2 = ws2.UsedRange
+nrows2 = used2.Rows.count
+list2 = []
+for i in range(3467,nrows2):
+    list2.append(str(ws2.Cells(i, 1).Value)[:10])
+    if ws2.Cells(i,1).Value == None: break
+
+today_cells = 3467+list2.index(today)
+
+start = ws2.Cells(today_cells-1,62)
+end = ws2.Cells(today_cells,62)
+start.Select()
+time.sleep(2)
+end.Select()
+start.AutoFill(ws2.Range(start,end))
+
+easygui.msgbox("저장버튼을 누르세요")
+time.sleep(2)
+xl.Quit()

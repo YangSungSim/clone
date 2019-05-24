@@ -1,3 +1,6 @@
+#신한 증권 API에서 당일 거래한 손익 및 총자산 거래 기록을 받아서 
+#메모장으로 출력합니다.
+
 import sys, os
 import PyQt5.QtGui import *
 import PyQt5.QtCore import *
