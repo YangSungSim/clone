@@ -1,0 +1,158 @@
+from pywinauto import application
+from pywinauto import timings
+import pyautogui
+import time
+import easygui
+import webbrowser
+
+##################신한아이#####################
+
+app = application.Application(backend='win32')
+app.start(r'주소\gmshstarter.exe')
+
+#pyautogui.typewrite('\n',interval=0.1)
+
+def ret_wind56():
+    return app.connect(title='Goodi Starter').Dialog
+
+dlg = timings.wait_until_passes(10,0.5, ret_wind56)
+
+time.sleep(3)
+press_edit = dlg.Edit1
+press_edit.set_focus()
+press_edit.type_keys('*******')
+
+time.sleep(2)
+pass_edit = dlg.Edit2
+pass_edit.set_focus()
+pass_edit.type_keys('*******')
+time.sleep(3)
+
+cert_edit = dlg.Edit3
+cert_edit.set_focus()
+cert_edit.type_keys('**************')
+time.sleep(2)
+
+pyautogui.click(x=1235,y=458)
+
+time.sleep(45)
+
+
+#######################ts실행#####################
+
+app = application.Application(backend='win32')
+app.start(r'주소/stsstarter.exe')
+print('ts load done')
+
+time.sleep(2)
+
+pyautogui.typewrite('\n',interval=0.1)
+
+def ret_wind3():
+    return app.connect(title='STS Starter').Dialog
+
+dlg = timings.wait_until_passes(20, 0.5, ret_wind3)
+print('done dlg')
+
+pass_edit = dlg.Edit2
+pass_edit.set_focus()
+pass_edit.type_keys('**************')
+time.sleep(2)
+
+cert_edit = dlg.Edit3
+cert_edit.set_focus()
+cert_edit.type_keys('**************')
+
+pyautogui.click(x=891,y=591)
+time.sleep(10)
+pyautogui.click(x=1026,y=669)
+
+time.sleep(35)
+
+pyautogui.hotkey('ctrl','o')
+
+time.sleep(15)
+
+
+##################### nhfoslab ##################
+app = application.Application(backend='win32')
+app.start(r'주소\wmtslogin.exe')
+print('cp load done')
+time.sleep(2)
+
+pyautogui.typewrite('\n', interval=0.1)
+
+print('enter done')
+
+def ret_wind3():
+    return app.connect(title='QV-Login').Dialog
+
+dlg = timings.wait_until_passes(20,0.5,ret_wind3)
+
+time.sleep(3)
+
+id_edit = dlg.Edit1
+id_edit.set_focus()
+id_edit.type_keys('*******')
+
+
+time.sleep(3)
+
+pass_edit = dlg.Edit2
+pass_edit.set_focus()
+pass_edit.type_keys('**************')
+
+time.sleep(3)
+
+cert_edit = dlg.Edit3
+cert_edit.set_focus()
+cert_edit.type_keys('**************')
+
+time.sleep(3)
+
+
+pyautogui.press('enter')
+
+time.sleep(25)
+
+
+################## investing.com ####################
+webbrowser.open_new("인터넷주소")
+time.sleep(3)
+webbrowser.open_new("인터넷주소")
+time.sleep(3)
+webbrowser.open_new("인터넷주소")
+
+time.sleep(10)
+################신한아이 인디실행####################
+
+app = application.Application(backend='win32')
+app.start(r'주소\giexpertstarter.exe')
+time.sleep(5)
+easygui.msgbox("직접 로그인.")
+
+'''
+pyautogui.typewrite('\n',interval=0.1)
+print('enter done')
+time.sleep(1)
+
+def ret_wind22():
+    return app.connect(title="GiExpert Starter").Dialog
+
+dlg = timings.wait_until_passes(20, 0.5, ret_wind22)
+print('done dlg')
+
+pass_edit = dlg.Edit2
+pass_edit.set_focus()
+pass_edit.type_keys('**************')
+print('done pw')
+
+cert_edit = dlg.Edit3
+cert_edit.set_focus()
+cert_edit.type_keys('**************')
+
+easygui.msgbox("로그인하세요")
+time.sleep(1)
+'''
+
+

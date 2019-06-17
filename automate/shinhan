@@ -453,5 +453,5 @@ for i in d:
 
 k.close()
 
-myfile = 'C:/Users/FOS_08/Desktop/오늘의숫자.txt'
+myfile = 'C:/오늘의숫자.txt'
 k = os.startfile(myfile)

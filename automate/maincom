@@ -4,8 +4,8 @@ import glob, shutil
 import os, easygui
 
 #파일 옮기기
-src2 = 'C:/Account/'   #본컴 Account
-dst = '//Fos_00/공유/Account/Account/'
+src2 = 'C:/'   #본컴 Account
+dst = '/Account/'
 for ff in os.listdir(src2):
     srcff = src2+ff
     if os.path.isfile(srcff):
@@ -13,14 +13,14 @@ for ff in os.listdir(src2):
 
 
 #파일 지우기
-for i in glob.glob('//Fos_00/공유/Account/Account/xlsx/*.xlsx'):
+for i in glob.glob('/Account/xlsx/*.xlsx'):
     os.unlink(i)
 
 #$account.xlsm 파일 매크로 run
 excel = win32com.client.Dispatch("excel.application")
 excel.visible = True
 excel.DisplayAlerts = False
-wb = excel.Workbooks.Open('//Fos_00/공유/Account/$Account.xlsm')
+wb = excel.Workbooks.Open('/$Account.xlsm')
 ws = wb.Worksheets('Major')
 excel.Application.run('ChangeXlsx')
 time.sleep(3)
@@ -31,7 +31,7 @@ time.sleep(3)
 xl = win32com.client.Dispatch('excel.Application')
 xl.Visible = True
 xl.DisplayAlerts = False
-wb = xl.Workbooks.Open('//Fos_00/!동기화/0선물정산.xlsm')
+wb = xl.Workbooks.Open('/0선물정산.xlsm')
 ws = wb.Worksheets('매매손익')
 ws2 = wb.Worksheets('자금운용')
 time.sleep(3)

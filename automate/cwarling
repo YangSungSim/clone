@@ -53,14 +53,14 @@ for i in index_cd1:
     nas_dow.append(k)
 
 #나스닥 다우존스 텍스트 기입
-dowjones = open('//Fos_00/!동기화/dowjones.txt','a',encoding='utf-8')
+dowjones = open('주소/dowjones.txt','a',encoding='utf-8')
 data = '\n'+nas_dow[0][0]+',1630,'+nas_dow[0][1]+' ,'+nas_dow[0][2]+' ,'+nas_dow[0][3]+' ,'+nas_dow[0][4]+' ,0,0'
 dowjones.write(data)
 dowjones.close()
 
-nasdaq1 = open('//Fos_00/!동기화/1-comp-2.txt','a',encoding='utf-8')
-nasdaq2 = open('//Fos_00/!동기화/COMP_H.txt','a',encoding='utf-8')
-nasdaq3 = open('//Fos_00/!동기화/COMP_휴일.txt','a',encoding='utf-8')
+nasdaq1 = open('주소/1-comp-2.txt','a',encoding='utf-8')
+nasdaq2 = open('주소/COMP_H.txt','a',encoding='utf-8')
+nasdaq3 = open('주소/COMP_휴일.txt','a',encoding='utf-8')
 data ='\n'+ nas_dow[1][0]+',1630,'+nas_dow[1][1]+' ,'+nas_dow[1][2]+' ,'+nas_dow[1][3]+' ,'+nas_dow[1][4]+' ,0,0'
 nasdaq1.write(data)
 nasdaq2.write(data)
@@ -108,8 +108,8 @@ def Nikkei():
     return sise
 
 #니케이 데이터 입력
-nikkei1 = open('//Fos_00/!동기화/Nikkei.txt','a',encoding='utf-8')
-nikkei2 = open('//Fos_00/!동기화/Nikkei2.txt','a',encoding='utf-8')
+nikkei1 = open('주소/Nikkei.txt','a',encoding='utf-8')
+nikkei2 = open('주소/Nikkei2.txt','a',encoding='utf-8')
 k = Nikkei()
 data1 = '\n'+k[0][0]+',1630,'+k[0][1]+' ,'+k[0][2]+' ,'+k[0][3]+' ,'+k[0][4]+' ,0,0'
 data2 = '\n'+k[1][0]+',1630,'+k[1][1]+' ,'+k[1][2]+' ,'+k[1][3]+' ,'+k[1][4]+' ,0,0'
@@ -135,8 +135,8 @@ def put_call():
 
     return a
 
-k = open('//Fos_00/!동기화/call_kk.txt','a',encoding='utf-8')
-r = open('//Fos_00/!동기화/put_kk.txt','a',encoding='utf-8')
+k = open('주소/call_kk.txt','a',encoding='utf-8')
+r = open('주소/put_kk.txt','a',encoding='utf-8')
 data1 = '\n'+put_call()+',1630,'
 k.write(data1)
 r.write(data1)

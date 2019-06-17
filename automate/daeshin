@@ -1,0 +1,68 @@
+from pywinauto import application
+from pywinauto import timings
+import pyautogui
+import time
+import easygui
+import webbrowser
+
+####################################################
+#Cybos 로그인
+######################################################
+pw = '********'
+cert = '***********'
+
+###############cybos_plus#############################
+
+app = application.Application(backend='win32')
+app.start(r'주소\ncStarter.exe /prj:cp')
+
+time.sleep(5)
+pyautogui.press("enter")
+
+pyautogui.typewrite('\n', interval=0.1)
+
+def ret_wind():
+    return app.connect(title='CYBOS Starter').Dialog
+dlg = timings.wait_until_passes(20, 0.5, ret_wind)
+
+
+pass_edit = dlg.Edit2
+pass_edit.set_focus()
+pass_edit.type_keys(pw)
+
+time.sleep(1)
+
+cert_edit = dlg.Edit3
+cert_edit.set_focus()
+cert_edit.type_keys(cert)
+
+
+#login
+btn = dlg.Button
+btn.click()
+print('done login click')
+
+btn = dlg.Button
+btn.click()
+
+time.sleep(30)
+
+
+pyautogui.click(x=1380,y=154)
+
+time.sleep(10)
+
+################Cybos5####################
+
+app = application.Application(backend='win32')
+app.start(r'주소\ncStarter.exe')
+
+pyautogui.press('enter')
+
+time.sleep(25)
+
+pyautogui.click(x=1144,y=607)
+
+time.sleep(2)
+
+pyautogui.click(x=498,y=70)

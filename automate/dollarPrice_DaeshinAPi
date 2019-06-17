@@ -10,7 +10,7 @@ import easygui
 import datetime
 
 #어제 날짜 행의 주소
-wb = xlrd.open_workbook('//Fos_00/!동기화/0원달러선물시세데이타.xlsx')
+wb = xlrd.open_workbook('주소/0원달러선물시세데이타.xlsx')
 sh = wb.sheet_by_index(0)
 
 row_list = []
@@ -88,7 +88,7 @@ volume = easygui.enterbox("달러선물 거래량은?")
 
 try:
     xl = win32com.client.Dispatch("Excel.Application")
-    xl_open = xl.Workbooks.Open("//Fos_00/!동기화/0원달러선물시세데이타.xlsx")
+    xl_open = xl.Workbooks.Open("주소/0원달러선물시세데이타.xlsx")
     xl.visible = True
     ws = xl_open.WorkSheets("Data")
     ws.Cells(cell_address+1,1).Value = ws.Cells(cell_address,1).Value + datetime.timedelta(days=3)

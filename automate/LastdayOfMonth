@@ -8,19 +8,19 @@ import time
 
 #$Account 파일 이름변경 복사
 today = datetime.datetime.today().strftime('%Y%m%d')
-src= '//Fos_00/공유/Account/$Account.xlsm'
-dst = '//Fos_00/공유/Account/Account백업/$Account_%s(75).xlsm' % str(today)
+src= '/Account/$Account.xlsm'
+dst = '/Account/Account백업/$Account_%s(75).xlsm' % str(today)
 shutil.copy(src,dst)
 
 #195개 파일 복사시켜서 붙여널기
 src2 = 'C:/Account/'
-dst2 = '//Fos_00/공유/Account/Account/'
+dst2 = '/Account/Account/'
 for ff in os.listdir(src2):
     srcFF  = src2 + ff
     if os.path.isfile(srcFF):
         shutil.copy(srcFF,dst+ff)
 #파일 지우기
-for i in glob.glob('//Fos_00/공유/Account/Account/xlsx/*.xlsx'):
+for i in glob.glob('/Account/Account/xlsx/*.xlsx'):
     os.unlink(i)
 
 #$Account파일을 열고 매크로를 run
@@ -28,7 +28,7 @@ for i in glob.glob('//Fos_00/공유/Account/Account/xlsx/*.xlsx'):
 xl = win32com.client.Dispatch('excel.Application')
 xl.visible = False
 xl.DisplayAlerts = False
-wb = xl.Workbooks.Open('//Fos_00/공유/Account/$Account.xlsm')
+wb = xl.Workbooks.Open('/Account/$Account.xlsm')
 ws = wb.Worksheets('Major')
 ws1_1 = wb.Worksheets('Minor')
 ws1_2 = wb.Worksheets('Position')
@@ -42,7 +42,7 @@ time.sleep(3)
 excel = win32com.client.Dispatch('excel.Application')
 excel.visible = True
 excel.DisplayAlerts = False
-wb2 = excel.WorkBooks.Open('//Fos_00/!동기화/0선물정산.xlsm')
+wb2 = excel.WorkBooks.Open('/0선물정산.xlsm')
 ws2 = wb2.WorkSheets('매매손익합')
 ws3 = wb2.WorkSheets('자금운용')
 ws4 = wb2.WorkSheets('0매매손익')
@@ -209,8 +209,8 @@ easygui.msgbox(' 저장버튼을 누르세요')
 
 #$Account 파일 이름변경 복사
 today = datetime.datetime.today().strftime('%Y%m%d')
-src= '//Fos_00/공유/Account/$Account.xlsm'
-dst = '//Fos_00/공유/Account/Account백업/$Account_%s(195).xlsm' % str(today)
+src= '/Account/$Account.xlsm'
+dst = '/Account/Account백업/$Account_%s(195).xlsm' % str(today)
 shutil.copy(src,dst)
 
 

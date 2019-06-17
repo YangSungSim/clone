@@ -6,7 +6,7 @@ from xlrd import xldate_as_tuple,open_workbook
 
 
 try:
-    wb =xlrd.open_workbook("//Fos_00/!동기화/0선물시세데이타.xlsm")
+    wb =xlrd.open_workbook("/0선물시세데이타.xlsm")
     sh = wb.sheet_by_index(0)  #sheet_by_name('선물시세')
 except IOError:
     print("file error, please check excel file")
@@ -49,8 +49,8 @@ for i in range(len(row_list)):
 
 #메모장에다가 입력시키기
 
-sum1_txt = open('//Fos_00/!동기화/sum1.txt','r')
-sum2_txt = open('//Fos_00/!동기화/sum2.txt','r')
+sum1_txt = open('/sum1.txt','r')
+sum2_txt = open('/sum2.txt','r')
 
 i = sum1_txt.readlines()
 lt = i[len(i)-1].split(',')[0]   #메모장의 맨 마지막 날짜 추출
@@ -85,8 +85,8 @@ sum2_txt.close()
 #메모장 기록
 
 
-sum1_txt = open('//Fos_00/!동기화/sum1.txt','a')
-sum2_txt = open('//Fos_00/!동기화/sum2.txt','a')
+sum1_txt = open('/sum1.txt','a')
+sum2_txt = open('/sum2.txt','a')
 
 
 for i in range(len(memo)-1):

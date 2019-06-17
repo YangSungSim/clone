@@ -8,7 +8,7 @@ import easygui
 
 #슬리피지csv 파일
 try:
-    pathToExcel = 'C:/Users/FOS_08/Desktop/슬리피지.csv'
+    pathToExcel = '/Desktop/슬리피지.csv'
     pathToMacro = 'C:/Program Files (x86)/Microsoft Office/Templates/슬리피지정산용.txt'
     macroname = 'autoarrange'
 
@@ -37,7 +37,7 @@ a = time.strftime('%Y-%m-%d',time.localtime(time.time()))
 
 #슬리피지관리.xlsm 매크로 실행만 하고 저장하고 닫기
 try:
-    pathToExcel2 = '//Fos_00/!동기화/슬리피지관리.xlsm'
+    pathToExcel2 = '/슬리피지관리.xlsm'
     xl = win32com.client.Dispatch("excel.Application")
     xl.DisplayAlerts = False
     xl.visible = True
@@ -59,7 +59,7 @@ to_upper = int(today_number)*0.1
 to_below = int(today_number)*0.9
 
 #data 시트에서 어제 날짜의 행번호는?
-wb = xlrd.open_workbook('//Fos_00/!동기화/슬리피지관리.xlsm')
+wb = xlrd.open_workbook('/슬리피지관리.xlsm')
 sh = wb.sheet_by_index(1)   #data 시트
 row_list = []
 for i in sh.col_values(0)[2:]:
@@ -86,7 +86,7 @@ try:
     xl = win32com.client.Dispatch("excel.Application")
     xl.visible = True
     xl.DisplayAlerts = False
-    wb = xl.Workbooks.Open('//Fos_00/!동기화/슬리피지관리.xlsm')
+    wb = xl.Workbooks.Open('/슬리피지관리.xlsm')
     ws = wb.Worksheets('2019')
     used = ws.UsedRange
 

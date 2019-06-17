@@ -11,7 +11,7 @@ import easygui
 xl = win32com.client.Dispatch('excel.Application')
 xl.visible = True
 xl.DisplayAlerts = False
-wb = xl.Workbooks.Open('//Fos_00/!동기화/원달러종가청산관리.xlsm')
+wb = xl.Workbooks.Open('주소/원달러종가청산관리.xlsm')
 ws = wb.Worksheets('원달러종가청산')
 
 #어제날짜 행 찾아야 하는데
@@ -68,7 +68,7 @@ time.sleep(5)
 xl = win32com.client.Dispatch('excel.Application')
 xl.visible= True
 xl.DisplayAlerts = False
-wb = xl.Workbooks.Open('//Fos_00/!동기화/종가청산관리.xlsm')
+wb = xl.Workbooks.Open('주소/종가청산관리.xlsm')
 ws = wb.Worksheets('종가청산(20170519이후)')
 
 used = ws.UsedRange
@@ -132,7 +132,7 @@ time.sleep(5)
 xl = win32com.client.Dispatch("excel.Application")
 xl.visible = True
 xl.DisplayAlerts = False
-wb = xl.Workbooks.Open('//Fos_00/!동기화/0손익통계분석.xlsm')
+wb = xl.Workbooks.Open('주소/0손익통계분석.xlsm')
 ws = wb.Worksheets('만기누적')
 time.sleep(10)
 used = ws.UsedRange
