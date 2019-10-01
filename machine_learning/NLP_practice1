@@ -1,0 +1,233 @@
+#k200.csv에다가 sentiment 를 채울 열을 집어넣기
+#train을 개조시키기 - > 끝에 라벨데이터를 k200 라벨데이터로 바꾼뒤에 
+#sentiment 측정 
+import pandas as pd
+import numpy as np
+
+
+before_train = pd.read_csv('../Documents/train.csv')
+from_csv = pd.read_csv('../Documents/k200.csv')
+
+
+before_train.head()
+from_csv.head()
+before_train.drop(columns=['label'])
+label_list = []
+for i in range(len(from_csv.Date)):
+    if from_csv.Date[i] in before_train.iloc[:,0].values:
+        label_list.append(from_csv.label[i])
+
+
+for i in before_train.iloc[:,0].values:
+    if i not in label_list:
+        print(i)
+    
+before_train.drop(before_train.index[before_train.iloc[:,0]=='2017-08-08'],inplace=True)
+before_train.label = label_list
+
+
+
+before_test = pd.read_csv('../Documents/test.csv')
+before_test.head()
+
+before_test.drop(columns=['label'])
+
+label_list2 = []
+for i in range(len(from_csv.Date)):
+    if from_csv.Date[i] in before_test.iloc[:,0].values:
+        label_list2.append(from_csv.label[i])
+
+
+label_list2K = []
+for i in range(len(from_csv.Date)):
+    if from_csv.Date[i] in before_test.iloc[:,0].values:
+        label_list2K.append(from_csv.Date[i])
+
+del_list = []
+for i in before_test.iloc[:,0].values:
+    if i not in label_list2K:
+        del_list.append(i)
+        
+        
+for i in del_list:
+    before_test.drop(before_test.index[before_test.iloc[:,0]==i],inplace=True)
+
+before_test.label = label_list2
+
+#데이터 가공 끝
+
+import re
+import nltk
+from konlpy.tag import Okt
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, GradientBoostingClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import roc_curve
+from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import train_test_split, KFold
+
+#한국어 텍스트 전처리방법? konlpy 로 형태소 추출한다음
+#불용어 리스트에서 전부 제거시키기
+okt = Okt()
+
+
+trainheadline = []
+for i in range(0,len(before_train.index)):
+    trainheadline.append(' '.join(str(x) for x in before_train.iloc[i,1:39]))
+
+#형태소를 다 분리시킴 불용어 제거
+    
+stopwords = []
+with open('../stop_words.txt','r') as res:
+    k = res.readlines()
+    for i in k:
+        i = i.replace('\n','')
+        stopwords.append(i)
+        
+        
+trainhead = []
+for i in trainheadline:
+    letters_only = okt.morphs(i)
+    temp = []
+    for ii in letters_only:
+        if ii not in stopwords:
+            letters = re.sub("[^ㄱ-ㅎㅏ-ㅣ가-힣]"," ",ii)
+            letterss = re.sub('[\s]','',letters)
+            if letterss != '':
+                temp.append(letterss)
+            temp2 = ' '.join(str(x) for x in set(temp))
+    trainhead.append(temp2)  
+
+len(trainhead)
+
+
+#test 도 전처리
+
+testheadline = []
+for i in range(0,len(before_test.index)):
+    testheadline.append(' '.join(str(x) for x in before_test.iloc[i,1:26]))
+
+
+testhead = []
+for i in testheadline:
+    letters_only = okt.morphs(i)
+    temp = []
+    for ii in letters_only:
+        if ii not in stopwords:
+            letters = re.sub("[^ㄱ-ㅎㅏ-ㅣ가-힣]"," ",ii)
+            letterss = re.sub('[\s]','',letters)
+            if letterss != '':
+                temp.append(letterss)
+            temp2 = ' '.join(str(x) for x in set(temp))
+    testhead.append(temp2)  
+
+len(testhead)
+
+#전처리 종료
+
+
+#countvecotirzer 할 때
+basicvectorizer = CountVectorizer()
+basictrain = basicvectorizer.fit_transform(trainhead)
+basictest = basicvectorizer.transform(testhead)
+
+
+#tfidvectorizer로  할때 
+basicvectorizer = TfidfVectorizer()
+basictrain = basicvectorizer.fit_transform(trainhead)
+basictest = basicvectorizer.transform(testhead)
+
+Classifiers = [
+        LogisticRegression(C=1,solver='liblinear',max_iter=5000)
+        ,KNeighborsClassifier(3),
+        RandomForestClassifier(n_estimators=2000,max_depth=9)]
+
+
+
+Accuracy = []
+Model = []
+for classifier in Classifiers:
+    try:
+        fit = classifier.fit(basictrain,before_train['label'])
+        pred = fit.predict(basictest)
+        prob = fit.predict_proba(basictest)[:,1]
+        
+    except Exception:
+        fit = classifier.fit(basictrain,before_train['label'])
+        pred = fit.predict(basictest)
+        prob = fit.predict_proba(basictest)[:,1]
+        
+    accuracy = accuracy_score(pred,before_test['label'])
+    Accuracy.append(accuracy)
+    Model.append(classifier.__class__.__name__)
+    fpr, tpr, _ = roc_curve(before_test['label'],prob)
+
+dfs = pd.DataFrame(columns = ['Model','Accuracy'])
+dfs.Model = Model
+dfs.Accuracy = Accuracy
+
+##########################
+#randomforest 로 fit하기
+fit =  RandomForestClassifier(n_estimators=2000,max_depth=9).fit(basictrain,before_train['label'])
+pred = fit.predict(basictest)
+prob = fit.predict_proba(basictest)[:,1]
+print(len(pred))
+k = pd.DataFrame(before_test.iloc[:,0].values)
+k1 = pd.DataFrame(pred)
+kkk = pd.concat([k,k1],axis=1)
+kkk.to_csv('C:/Users/FOS_08/Documents/compare.csv')
+########################
+
+kfold = KFold(n_splits=5, shuffle=True)
+    
+param_grid = {'n_estimators': [10, 500, 1000, 2000],
+              'max_depth': [2, 4, 5, 7]}
+
+grid_search = GridSearchCV(
+        RandomForestClassifier(), param_grid, cv=kfold, return_train_score=True, iid=True) #iid 기본값  false 폴드의 갯수가 다 같지 않을 때 갯수가 많은 곳에 가중치를 준다.
+
+grid_search.fit(basictrain, before_train['label'])
+
+print("테스트 세트 점수: {:.2f}".format(grid_search.score(basictest, before_test['label'])))
+
+print("최적 매개변수: {}".format(grid_search.best_params_))
+
+print("최고 교차 검증 점수: {:.2f}".format(grid_search.best_score_))
+
+print("최고 성능 모델:\n{}".format(grid_search.best_estimator_))
+
+
+#모델 RandomForestClassifier n_estimator = 2000, max_depth= 7
+
+
+#############keras로 모델 만들기  -> 과부하걸림
+
+from keras.models import Sequential
+from keras.layers import Dense, LSTM, Embedding
+from keras.preprocessing import sequence
+
+model = Sequential()
+model.add(Embedding(5000,120))
+model.add(LSTM(120))
+model.add(Dense(1, activation='sigmoid'))
+
+
+model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
+model.fit(basictrain,before_train['label'],validation_data=(basictest,before_test['label']), epochs=5, batch_size=64)
+scores = model.evaluate(basictest, before_test['label'],verbose=0)
+print("정확도: ",scores[1]*100)
+
+
+
+
+
+
+

@@ -1,0 +1,219 @@
+#월말 정산용 exe 파일 기초
+import win32com.client
+import shutil
+import glob,sys,os
+import datetime,time
+import easygui
+import time
+
+#$Account 파일 이름변경 복사
+today = datetime.datetime.today().strftime('%Y%m%d')
+src= '//Fos_00/공유/Account/$Account.xlsm'
+dst = '//Fos_00/공유/Account/Account백업/$Account_%s(75).xlsm' % str(today)
+shutil.copy(src,dst)
+
+#195개 파일 복사시켜서 붙여널기
+src2 = 'C:/Account/'
+dst2 = '//Fos_00/공유/Account/Account/'
+for ff in os.listdir(src2):
+    srcFF  = src2 + ff
+    if os.path.isfile(srcFF):
+        shutil.copy(srcFF,dst+ff)
+#파일 지우기
+for i in glob.glob('//Fos_00/공유/Account/Account/xlsx/*.xlsx'):
+    os.unlink(i)
+
+#$Account파일을 열고 매크로를 run
+
+xl = win32com.client.Dispatch('excel.Application')
+xl.visible = False
+xl.DisplayAlerts = False
+wb = xl.Workbooks.Open('//Fos_00/공유/Account/$Account.xlsm')
+ws = wb.Worksheets('Major')
+ws1_1 = wb.Worksheets('Minor')
+ws1_2 = wb.Worksheets('Position')
+ws1_3 = wb.Worksheets('Minor1')
+ws1_4 = wb.Worksheets('Minor2')
+ws1_5 = wb.Worksheets('Minor3')
+
+#xl.Application.run('ChangeXlsx')
+time.sleep(3)
+
+excel = win32com.client.Dispatch('excel.Application')
+excel.visible = True
+excel.DisplayAlerts = False
+wb2 = excel.WorkBooks.Open('//Fos_00/!동기화/0선물정산.xlsm')
+ws2 = wb2.WorkSheets('매매손익합')
+ws3 = wb2.WorkSheets('자금운용')
+ws4 = wb2.WorkSheets('0매매손익')
+
+#테스트용 날짜 다 하고 나면 다시 괄호를 풀어주세요.
+k = datetime.datetime.today().strftime('%Y-%m-%d')
+
+used = ws2.UsedRange
+nrows = used.Rows.count
+
+#합격 다음단계
+#1. Major net & pf 노란 줄 채우기
+list = []
+for i in range(503,nrows):
+    list.append(str(ws2.Cells(i,29).Value)[:10])
+    if type(ws2.Cells(i,29).Value) == str : break
+
+major_adress = 503+list.index(k)
+major_start = ws2.Cells(major_adress,29).offset(1,3)
+major_end = ws2.Cells(major_adress+1,29).offset(1,32)
+
+ws2.Range(major_start,major_end).Value = ws.Range(ws.Cells(27,3),ws.Cells(28,32)).Value
+
+#positon net &pf
+
+ws2.Range(ws2.Cells(major_adress,61),ws2.Cells(major_adress+1,64)).Value = \
+ws1_2.Range(ws1_2.Cells(27,2),ws1_2.Cells(28,5)).Value
+
+
+#합격
+#minor0 월손익 드래그
+#매매손익합 저번달꺼 last_code, 이번달꺼 this_code
+used2 = ws4.UsedRange
+nrows2 = used2.Rows.count
+list3 = []
+for i in range(3116,nrows2):
+    list3.append(ws4.Cells(i,1).Value)
+
+def month():
+    a = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
+    next_month = a[int(datetime.datetime.now().month)]   #다음달 인덱스 반환
+    return (next_month, a[int(next_month) - 2]) # 다음달 인덱스와 이번달 인덱스 반환
+
+last_code = 3116 + list3.index('%s%s' %(str(datetime.datetime.now().year)[2:], month()[1])) -1
+this_code = 3116 + list3.index('%s%s' %(str(datetime.datetime.now().year)[2:], month()[0])) -1
+
+easygui.msgbox('%d에서 %d 로 바꾸세요'%(last_code,this_code))
+
+#합격
+#minor net & pf
+list2 = []
+for i in range(1031,nrows):
+    if ws2.Cells(i,29).Value != ws2.Cells(i+1,29).Value:
+        list2.append(str(ws2.Cells(i,29).Value)[:10])
+    else:
+        break
+
+minor0_address = 1031 + list2.index(k)
+minor0_start = ws2.Cells(minor0_address,29).offset(1,3)
+minor0_end = ws2.Cells(minor0_address+1,29).offset(1,43)
+ws2.Range(minor0_start, minor0_end).Value = ws1_1.Range(ws1_1.Cells(27,2),ws1_1.Cells(28,42)).Value
+
+
+#합격
+#minor1  월손익
+list4 = []
+for i in range(1249,nrows):
+    list4.append(str(ws2.Cells(i,30).Value).strip('.0'))
+    if str(ws2.Cells(i,30))[-1]=='년': break
+
+def month1():
+    a = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
+    this_month = a[int(datetime.datetime.now().month)-1]
+    return (this_month, a[int(this_month) - 2])
+
+minor1_adress = 1249+list4.index('%s%s' %(str(datetime.datetime.now().year)[2:], month1()[0]))
+minor1_start = ws2.Cells(minor1_adress,30).offset(1,2)
+minor1_end = ws2.Cells(minor1_adress,30).offset(1,50)
+
+ws2.Range(minor1_start,minor1_end).Value = ws1_3.Range(ws1_3.Cells(31,2),ws1_3.Cells(31,50)).Value
+
+#합격
+#minor1 net& pf
+list5 = []
+for i in range(1559,nrows):
+    if ws2.Cells(i,29).Value != ws2.Cells(i+1,29).Value:
+        list5.append(str(ws2.Cells(i,29).Value)[:10])
+    else:
+        break
+
+minor1_address2 = 1559 + list5.index(k)
+minor1_start2 = ws2.Cells(minor1_address2,29).offset(1,3)
+minor1_end2 = ws2.Cells(minor1_address2+1,29).offset(1,51)
+ws2.Range(minor1_start2, minor1_end2).Value = ws1_3.Range(ws1_3.Cells(27,2),ws1_3.Cells(28,50)).Value
+
+#합격
+#minor2 월손익
+list6 = []
+for i in range(1777,nrows):
+    list6.append(str(ws2.Cells(i,30).Value).strip('.0'))
+    if str(ws2.Cells(i,30).Value)[:-1]=='년': break
+
+def month2():
+    a = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
+    this_month = a[int(datetime.datetime.now().month)-1]
+    return (this_month, a[int(this_month) - 2])
+
+
+minor2_adress = 1777+list6.index('%s%s' %(str(datetime.datetime.now().year)[2:], month2()[0]))
+minor2_start = ws2.Cells(minor2_adress,30).offset(1,2)
+minor2_end = ws2.Cells(minor2_adress,30).offset(1,49)
+ws2.Range(minor2_start,minor2_end).Value = ws1_4.Range(ws1_4.Cells(31,2),ws1_4.Cells(31,49)).Value
+
+
+#합격
+#minor2 net& pf
+list5 = []
+
+for i in range(2087,nrows):
+    if ws2.Cells(i,29).Value != ws2.Cells(i+1,29).Value:
+        list5.append(str(ws2.Cells(i,29).Value)[:10])
+    else:
+        break
+
+minor2_address2 = 2087 + list5.index(k)
+minor2_start2 = ws2.Cells(minor2_address2,29).offset(1,3)
+minor2_end2 = ws2.Cells(minor2_address2+1,29).offset(1,50)
+ws2.Range(minor2_start2, minor2_end2).Value = ws1_4.Range(ws1_4.Cells(27,2),ws1_4.Cells(28,49)).Value
+
+
+#합격
+#minor3 월손익
+list7 = []
+for i in range(2305,nrows):
+    list7.append(str(ws2.Cells(i,30).Value).strip('.0'))
+    if str(ws2.Cells(i,30).Value)[-1]=='년': break
+
+def month3():
+    a = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
+    this_month = a[int(datetime.datetime.now().month)-1]
+    return (this_month, a[int(this_month) - 2])
+
+minor3_adress = 2305+list7.index('%s%s' %(str(datetime.datetime.now().year)[2:], month3()[0]))
+minor3_start = ws2.Cells(minor3_adress,30).offset(1,2)
+minor3_end = ws2.Cells(minor3_adress,30).offset(1,10)
+ws2.Range(minor3_start,minor3_end).Value = ws1_5.Range(ws1_5.Cells(31,3),ws1_5.Cells(31,11)).Value
+
+
+#합격
+#minor3 net& pf
+list8 = []
+for i in range(2615,nrows):
+    list8.append(str(ws2.Cells(i,29).Value)[:10])
+
+minor3_address2 = 2615 + list8.index(k)
+minor3_start2 = ws2.Cells(minor3_address2,29).offset(1,3)
+minor3_end2 = ws2.Cells(minor3_address2+1,29).offset(1,11)
+ws2.Range(minor3_start2, minor3_end2).Value = ws1_5.Range(ws1_5.Cells(27,3),ws1_5.Cells(28,11)).Value
+
+
+ws2.Cells(1,195).Select()
+ws3.Select()
+easygui.msgbox(' 저장버튼을 누르세요')
+
+#$Account 파일 이름변경 복사
+today = datetime.datetime.today().strftime('%Y%m%d')
+src= '//Fos_00/공유/Account/$Account.xlsm'
+dst = '//Fos_00/공유/Account/Account백업/$Account_%s(195).xlsm' % str(today)
+shutil.copy(src,dst)
+
+
+#fin.
+xl.Quit()
+

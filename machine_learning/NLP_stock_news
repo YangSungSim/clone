@@ -1,0 +1,219 @@
+import pandas as pd
+import numpy as np
+import datetime
+#1. BetaOpenReturn01  2. JustOpenReturn  03. BetaCloseReturn01
+
+sample = pd.read_csv('../Documents/result.csv')
+sample.columns = range(1,len(sample.iloc[0,:])+1)
+kospi = pd.read_csv('../Documents/kospi.csv')
+
+
+sample.iloc[:,0] = [datetime.datetime.strptime(str(i),'%Y-%m-%d') for i in sample.iloc[:,0]]
+kospi.Date = [datetime.datetime.strptime(str(i),'%Y-%m-%d') for i in kospi.Date]
+
+# 공휴일 국가공휴일등을 전부 제거시키기
+
+small = list(sample.iloc[:,0])
+many = list(kospi.Date)
+dellist = []
+for i in small :
+    if i not in many:
+        dellist.append(i)
+for i in dellist :
+    sample.drop(sample.index[(sample.iloc[:,0] == i)], inplace=True)
+len(sample)  # 제거시킨 항목 1972개
+
+label = [] # 해당하는 날짜의 라벨 데이터만 label에 집어넣기
+for i in list(sample.iloc[:,0]):
+    label.append(int(kospi.label[kospi.Date==i]))
+    print(int(kospi.label[kospi.Date==i]))
+sample['label'] = label
+print(kospi.Date[1]==sample.iloc[4,0])
+
+sample.set_index(sample.iloc[:,0],inplace=True)
+sample.drop(columns=[1],inplace=True)
+# 라벨데이터를 옆에다 집어넣어야함. 전처리 종료
+
+sample.to_csv("../Documents/train.csv")
+
+##########################################################
+#test data를 준비해보자
+sample = pd.read_csv('../Documents/result2.csv')
+sample.columns = range(1,len(sample.iloc[0,:])+1)
+kospi = pd.read_csv('../Documents/kospi.csv')
+
+
+sample.iloc[:,0] = [datetime.datetime.strptime(str(i),'%Y-%m-%d') for i in sample.iloc[:,0]]
+kospi.Date = [datetime.datetime.strptime(str(i),'%Y-%m-%d') for i in kospi.Date]
+
+# 공휴일 국가공휴일등을 전부 제거시키기
+
+small = list(sample.iloc[:,0])
+many = list(kospi.Date)
+dellist = []
+for i in small :
+    if i not in many:
+        dellist.append(i)
+for i in dellist :
+    sample.drop(sample.index[(sample.iloc[:,0] == i)], inplace=True)
+len(sample)  # 제거시킨 항목 1972개
+
+label = [] # 해당하는 날짜의 라벨 데이터만 label에 집어넣기
+for i in list(sample.iloc[:,0]):
+    label.append(int(kospi.label[kospi.Date==i]))
+    print(int(kospi.label[kospi.Date==i]))
+sample['label'] = label
+#print(kospi.Date[1]==sample.iloc[4,0])
+
+sample.set_index(sample.iloc[:,0],inplace=True)
+sample.drop(columns=[1],inplace=True)
+# 라벨데이터를 옆에다 집어넣어야함. 전처리 종료
+
+sample.to_csv("C:/Users/FOS_08/Documents/test.csv")
+
+########################################################
+#train 2010-01-04  ~2017-12-28
+import matplotlib.pyplot as plt
+import re
+from wordcloud import WordCloud
+import nltk
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, GradientBoostingClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import roc_curve
+
+
+train_data = pd.read_csv("../Documents/train.csv")
+test_data = pd.read_csv("../Documents/test.csv")
+train_data['label'].value_counts().plot(kind='bar')
+test_data['label'].value_counts().plot(kind='bar')
+#print(train_data.isnull().sum()) null 값여부 조사
+# 한글 만 남기고 제거하기 위해서 정규표현식 사용
+#여러개의 헤드라인을 한군데 집어넣어야 함.
+trainheadline = []
+for i in range(0,len(train_data.index)):
+    trainheadline.append(' '.join(str(x) for x in train_data.iloc[i,1:39]))
+
+#stopwords=['의','가','이','은','들','는','좀','잘','걍','과','도','를','으로','자','에','와','한','하다']
+
+trainhead = []   # 글자만 남기자  #불용어도 제거시키자
+for i in trainheadline :
+    letters_only  = re.sub("[^ㄱ-ㅎㅏ-ㅣ가-힣 ]"," ",i)
+    trainhead.append(letters_only)
+
+
+
+testheadline = []
+for i in range(0,len(test_data.index)):
+    testheadline.append(' '.join(str(x) for x in test_data.iloc[i,1:26]))
+
+testhead = []   #글자만 남기자  #불용어도 제거시키자 
+for i in testheadline :
+    letters_only  = re.sub("[^ㄱ-ㅎㅏ-ㅣ가-힣 ]"," ",i)
+    testhead.append(letters_only)
+    
+basicvectorizer = CountVectorizer()
+basictrain = basicvectorizer.fit_transform(trainhead)
+basictest = basicvectorizer.transform(testhead)
+
+#model fitting
+Classifiers = [
+        LogisticRegression(C=0.1,solver='liblinear',max_iter=2000)
+        ,KNeighborsClassifier(3),
+        RandomForestClassifier(n_estimators=500,max_depth=9)]
+
+
+Accuracy = []
+Model = []
+for classifier in Classifiers:
+    try:
+        fit = classifier.fit(basictrain,train_data['label'])
+        pred = fit.predict(basictest)
+        prob = fit.predict_proba(basictest)[:,1]
+        
+    except Exception:
+        fit = classifier.fit(basictrain,train_data['label'])
+        pred = fit.predict(basictest)
+        prob = fit.predict_proba(basictest)[:,1]
+        
+    accuracy = accuracy_score(pred,test_data['label'])
+    Accuracy.append(accuracy)
+    Model.append(classifier.__class__.__name__)
+    fpr, tpr, _ = roc_curve(test_data['label'],prob)
+
+dfs = pd.DataFrame(columns = ['Model','Accuracy'])
+dfs.Model = Model
+dfs.Accuracy = Accuracy
+
+
+
+'''
+    Model  Accuracy
+0      LogisticRegression    0.6800
+1    KNeighborsClassifier    0.5475
+2  RandomForestClassifier    0.5575
+'''
+
+'''
+#번외편  1인 라벨테이터의 주요 당너와 -1인 라벨데이터의 주요 단어를 wordcloud 로 빼내기
+non_decrease = train_data[train_data['label']==1]
+decrease  = train_data[train_data['label']==-1]
+
+non_decrease_word = []
+testheadline = []
+for i in range(0,len(non_decrease.index)):
+    testheadline.append(' '.join(str(x) for x in non_decrease.iloc[i,1:26]))
+
+for i in testheadline:
+    stop_word = re.sub("[^ㄱ-ㅎㅏ-ㅣ가-힣 ]"," ",i)
+    up_word = stop_word.split()
+    non_decrease_word.append(up_word)
+
+decrease_word = []
+
+testheadline1 = []
+for i in range(0,len(decrease.index)):
+    testheadline1.append(' '.join(str(x) for x in decrease.iloc[i,1:26]))
+
+
+for i in testheadline1:
+    stop_word = re.sub("[^ㄱ-ㅎㅏ-ㅣ가-힣 ]"," ",i)
+    de_word = stop_word.split()
+    decrease_word.append(de_word)
+
+
+# 한글로 프린트하고 싶으면 그에 맞는 폰트를 쓰면됨.
+wordcloud1 = WordCloud(font_path='C:/Windows/Fonts/H2MKPB.TTF',background_color='black',
+                       width=3000,
+                       height=2500).generate(' '.join(decrease_word[0]))
+plt.figure(1,figsize=(8,8))
+plt.imshow(wordcloud1)
+plt.axis('off')
+plt.title("words which indicate a fall in DJIA")
+plt.show()
+
+
+wordcloud2 = WordCloud(font_path='C:/Windows/Fonts/H2MKPB.TTF',
+                       background_color='green',
+                       width=3000,
+                       height=2500).generate(' '.join(non_decrease_word[0]))
+plt.figure(1, figsize=(8,8))
+plt.imshow(wordcloud2)
+plt.axis('off')
+plt.title("words with indicate a rise/stable DJIA")
+plt.show()
+'''
+
+
+
+
+
+
+

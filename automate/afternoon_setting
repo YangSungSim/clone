@@ -5,72 +5,88 @@ import time
 import easygui
 import webbrowser
 import win32com.client
+import comtypes.client
 
 
 ##############첫번째 신한아이 실행################
 app = application.Application(backend='win32')
-app.start(r'주소\gmshstarter.exe')
+app.start(r'C:\SHINHAN-i\2004\gmshstarter.exe')
 
 def ret_wind11():
-    return app.connect(title='Goodi Starter').Dialog
+    return app.connect(title='로그인').Dialog
 dlg = timings.wait_until_passes(10,0.5, ret_wind11)
 
 ID_dit = dlg.Edit1
 ID_dit.set_focus()
-ID_dit.type_keys('***********')
+ID_dit.type_keys('imanda')
 time.sleep(1)
 
 pass_edit = dlg.Edit2
 pass_edit.set_focus()
-pass_edit.type_keys('***********')
+pass_edit.type_keys('tldrmf#67')
 time.sleep(1)
 
 cert_edit = dlg.Edit3
 cert_edit.set_focus()
-cert_edit.type_keys('***********')
+cert_edit.type_keys('vhtmfoq=679')
 
-pyautogui.click(x=1235,y=458)
-time.sleep(45)
+pyautogui.click(x=1190,y=598)
+time.sleep(60)
 
 ##############두번째 신한아이 실행################
+easygui.msgbox("두번째")
 '''
 x,y = pyautogui.position()
 print(x,y)
-
-pyautogui.click(x=977,y=35)
+'''
+time.sleep(2)
+pyautogui.click(x=958,y=32)
 time.sleep(1)
-pyautogui.click(x=1150,y=92)
+pyautogui.click(x=926,y=99)
 time.sleep(1)
-pyautogui.click(x=1227,y=123)
+pyautogui.click(x=1194,y=117)
 
 pyautogui.press('enter')
-'''
+time.sleep(15)
 
+pyautogui.click(x=1123,y=491)
+pyautogui.typewrite('imanda69')
+time.sleep(1)
+
+pyautogui.click(x=1152,y=521)
+pyautogui.typewrite('djsej67')
+time.sleep(1)
+
+pyautogui.click(x=1132,y=554)
+pyautogui.typewrite('vhtmfoq=689')
+'''
+time.sleep(2)
 def ret_wind11():
     return app.connect(title='Goodi Starter').Dialog
-dlg = timings.wait_until_passes(10,0.5, ret_wind11)
+dlg = timings.wait_until_passes(20,0.5, ret_wind11)
 
 ID_dit = dlg.Edit1
 ID_dit.set_focus()
-ID_dit.type_keys('***********')
+ID_dit.type_keys('imanda69')
 time.sleep(1)
 
 pass_edit = dlg.Edit2
 pass_edit.set_focus()
-pass_edit.type_keys('***********')
+pass_edit.type_keys('djsej67')
 time.sleep(1)
 
 cert_edit = dlg.Edit3
 cert_edit.set_focus()
-cert_edit.type_keys('***********')
+cert_edit.type_keys('vhtmfoq=689')
+'''
+pyautogui.click(x=1190,y=598)
 
-pyautogui.click(x=1235,y=458)
 time.sleep(45)
 
-######################nh########
+######################nh 권정태 로그인########
 app = application.Application(backend='win32')
-app.start(r'주소\wmtslogin.exe')
-print('cp load done')
+app.start(r'C:\WMV\QV\wmtslogin.exe')
+print('nh 권정태 로그인')
 time.sleep(1)
 
 print('enter done')
@@ -84,35 +100,36 @@ time.sleep(3)
 
 id_edit = dlg.Edit1
 id_edit.set_focus()
-id_edit.type_keys('***********')
+id_edit.type_keys('imanda')
 
 
 time.sleep(3)
 
 pass_edit = dlg.Edit2
 pass_edit.set_focus()
-pass_edit.type_keys('***********')
+pass_edit.type_keys('foqtm67')
 
 time.sleep(3)
 
+
 cert_edit = dlg.Edit3
 cert_edit.set_focus()
-cert_edit.type_keys('***********')
+cert_edit.type_keys('vhtmfoq=679')
 
 time.sleep(3)
 
 
 pyautogui.press('enter')
 
-time.sleep(25)
-'''
-##############nh2##############
+time.sleep(40)
+
+##############nh 문현주 로그인##############
 app = application.Application()
-app.start(r'주소\wmtslogin.exe')
-print('cp load done')
+app.start(r'C:\WMV\QV\wmtslogin.exe')
+print('nh 문현주 로그인')
 time.sleep(1)
 
-pyautogui.typewrite('\n', interval=0.1)
+#pyautogui.typewrite('\n', interval=0.1)
 
 print('enter done')
 
@@ -125,34 +142,35 @@ time.sleep(3)
 
 id_edit = dlg.Edit1
 id_edit.set_focus()
-id_edit.type_keys('***********')
+id_edit.type_keys('imanda69')
 
 
-time.sleep(3)
+time.sleep(1)
 
 pass_edit = dlg.Edit2
 pass_edit.set_focus()
-pass_edit.type_keys('***********')
+pass_edit.type_keys('foqtm69')
 
-time.sleep(3)
+time.sleep(1)
 
 cert_edit = dlg.Edit3
 cert_edit.set_focus()
-cert_edit.type_keys('***********')
+cert_edit.type_keys('vhtmfoq=689')
 
-time.sleep(3)
+time.sleep(1)
 
 
 pyautogui.press('enter')
 
-time.sleep(25)
+time.sleep(40)
 
 
-'''
-################# 싸이칸################
+easygui.msgbox("싸이칸")
+
+################# 싸이칸 로그인 ################
 app = application.Application(backend='win32')
-app.start(r'주소\cyKhanPlus.exe')
-time.sleep(5)
+app.start(r'C:\하이투자증권\cyKhanPlus\exe\cyKhanPlus.exe')
+time.sleep(1)
 
 def ret_wind3():
     return app.connect(title='싸이칸 Plus').Dialog
@@ -163,13 +181,13 @@ pyautogui.typewrite('\n', interval=0.1)
 
 pass_edit = dlg.Edit2
 pass_edit.set_focus()
-pass_edit.type_keys('***********')
+pass_edit.type_keys('tldrmf67')
 print('done pw')
 time.sleep(2)
 
 cert_edit = dlg.Edit3
 cert_edit.set_focus()
-cert_edit.type_keys('***********')
+cert_edit.type_keys('vhtmfoq=679')
 print('done cert')
 time.sleep(2)
 
@@ -178,38 +196,25 @@ btn.click()
 
 time.sleep(30)
 
-################ 현대선물 #################
+################ 현대선물 로그인#################
 
 app = application.Application(backend='win32')
-app.start(r'주소/HDFStarter.exe')
-print('현대선물 load done')
-time.sleep(15)
+app.start(r'C:\현대선물\ezFutures\HDFStarter.exe')
 
 
+''''
 pyautogui.click(x=1161,y=463)
-easygui.msgbox("탐지 클릭")
+easygui.msgbox("원격탐지 클릭")
 
-pyautogui.typewrite('***********')
-easygui.msgbox("탐지 클릭")
+pyautogui.typewrite('tldrmf67')
+easygui.msgbox("원격탐지 클릭")
 time.sleep(2)
 
 pyautogui.click(x=1151,y=489)
-pyautogui.typewrite('***********')
-easygui.msgbox("탐지 클릭")
+pyautogui.typewrite('vhtmfoq=679')
+easygui.msgbox("원격탐지 클릭")
 
 time.sleep(3)
 pyautogui.click(x=1232,y=460)
-time.sleep(20)
-
-pyautogui.typewrite("***********")
-
-time.sleep(15)
-
-pathToExcel2 = '주소/선물정산.xlsm'
-xl = win32com.client.Dispatch("excel.Application")
-xl.DisplayAlerts = False
-xl.visible = True
-wb = xl.Workbooks.Open(pathToExcel2)
-
-easygui.msgbox('end')
+'''
 

@@ -1,0 +1,397 @@
+import pandas as pd
+import numpy as np
+from matplotlib import pyplot as plt
+import datetime
+import matplotlib
+matplotlib.rcParams['font.family'] = 'Malgun Gothic'
+matplotlib.rcParams['axes.unicode_minus']= False
+
+
+#환율
+table = pd.read_csv('D:/Dev/ml/2_data/st_data_exchange.tsv',sep='\t')
+pd.options.display.max_columns = 30
+table.itemname2.unique()
+table.columns
+
+def datedate(table):
+    year = [i[:4]for i in table.date.astype(str)]
+    month = [i[4:6] for i in table.date.astype(str)]
+    day = [i[6:] for i in table.date.astype(str)]
+    k = []
+    for i in range(len(year)):
+        a= year[i]
+        b=month[i]
+        c=day[i]
+    
+        k.append(datetime.datetime.strptime(a+b+c,'%Y%m%d'))
+    return k
+
+table.date = datedate(table)
+
+name = table.itemname.unique()
+
+
+plt.figure(figsize=(35,40))
+
+
+
+for i in range(len(name)):
+    a = table.date[table.itemname==name[i]]
+    b = table.sale_base_rate[table.itemname==name[i]]
+    c = table.cash_buying_val[table.itemname==name[i]]
+    d = table.cash_selling_val[table.itemname==name[i]]
+    plt.subplot(11,4,i+1)
+    plt.plot(a,b)
+    plt.plot(a,c,'r--')
+    plt.plot(a,d,'g--')
+    plt.plot()
+    plt.xlabel(table.itemname2.unique()[i])
+
+    
+#plt.savefig('환율.jpg')
+plt.show()
+
+
+
+'''
+#해외지수
+table1 = pd.read_csv('D:/Dev/ml/2_data/st_data_foreignCharge.tsv',sep='\t')
+#print(table1.head())
+#print(table1.columns)
+
+def datedate(table):
+    year = [i[:4]for i in table.date.astype(str)]
+    month = [i[4:6] for i in table.date.astype(str)]
+    day = [i[6:] for i in table.date.astype(str)]
+    k = []
+    for i in range(len(year)):
+        a= year[i]
+        b=month[i]
+        c=day[i]
+    
+        k.append(datetime.datetime.strptime(a+b+c,'%Y%m%d'))
+    return k
+
+table1.date = datedate(table1)
+
+
+plt.figure(figsize=(16,20))
+plt.subplot(3,1,1)
+plt.plot(table1.date[table1.itemname=="나스닥 종합"],
+         table1.close_val[table1.itemname=="나스닥 종합"])
+plt.xlabel('Nasdaq')
+
+plt.subplot(3,1,2)
+plt.plot(table1.date[table1.itemname=="상해종합"],
+         table1.close_val[table1.itemname=="상해종합"])
+plt.xlabel('ShangHai')
+
+plt.subplot(3,1,3)
+plt.plot(table1.date[table1.itemname=="베트남 하노이 HNX"],
+         table1.close_val[table1.itemname=="베트남 하노이 HNX"])
+plt.xlabel('Vietnam')
+plt.savefig('국제지수.jpg')
+plt.show()
+
+
+#외국 금시세
+table2 = pd.read_csv('D:/Dev/ml/2_data/st_data_goldForeign.tsv',sep='\t')
+print(table2.head())
+print(table2.info())
+print(table2.itemname.unique())
+
+def datedate(table):
+    year = [i[:4]for i in table.date.astype(str)]
+    month = [i[4:6] for i in table.date.astype(str)]
+    day = [i[6:] for i in table.date.astype(str)]
+    k = []
+    for i in range(len(year)):
+        a= year[i]
+        b=month[i]
+        c=day[i]
+    
+        k.append(datetime.datetime.strptime(a+b+c,'%Y%m%d'))
+    return k
+
+table2.date = datedate(table2)
+
+plt.figure(figsize=(16,20))
+
+plt.subplot(4,1,1)
+plt.plot(table2.date[table2.itemname=="국제 금"],table2.close_val[table2.itemname=="국제 금"],
+         label='국제금')
+plt.subplot(4,1,2)
+plt.plot(table2.date[table2.itemname=="팔라듐"],table2.close_val[table2.itemname=="팔라듐"],
+         label='팔라듐')
+plt.subplot(4,1,3)
+plt.plot(table2.date[table2.itemname=="백금"],table2.close_val[table2.itemname=="백금"],
+         label='백금')
+plt.subplot(4,1,4)
+plt.plot(table2.date[table2.itemname=="은"],table2.close_val[table2.itemname=="은"],
+         label='은')
+plt.savefig('외국금시세.jpg')
+plt.show()
+
+
+
+#국내 금시세
+table3 = pd.read_csv('D:/Dev/ml/2_data/st_data_goldKorea.tsv',sep='\t')
+#print(table3.head())
+#pd.options.display.max_columns = 30
+#print(table3.info())
+
+def datedate(table):
+    year = [i[:4]for i in table.date.astype(str)]
+    month = [i[4:6] for i in table.date.astype(str)]
+    day = [i[6:] for i in table.date.astype(str)]
+    k = []
+    for i in range(len(year)):
+        a= year[i]
+        b=month[i]
+        c=day[i]
+    
+        k.append(datetime.datetime.strptime(a+b+c,'%Y%m%d'))
+    return k
+
+table3.date = datedate(table3)
+
+plt.figure(figsize=(16,8))
+plt.subplot(2,1,1)
+plt.plot(table3.date,table3.deal_val,label='매매기준율',color='red')
+
+plt.subplot(2,1,2)
+plt.plot(table3.date,table3.international_val,label='국제금시세',color='blue')
+plt.savefig('금시세국내.jpg')
+plt.show()
+
+
+#원자재
+table4 = pd.read_csv('D:/Dev/ml/2_data/st_data_goodsForeign.tsv',sep='\t')
+#print(table4.head())
+#print(table4.info())
+#print(table4.columns)
+
+def datedate(table):
+    year = [i[:4]for i in table.date.astype(str)]
+    month = [i[4:6] for i in table.date.astype(str)]
+    day = [i[6:] for i in table.date.astype(str)]
+    k = []
+    for i in range(len(year)):
+        a= year[i]
+        b=month[i]
+        c=day[i]
+    
+        k.append(datetime.datetime.strptime(a+b+c,'%Y%m%d'))
+    return k
+
+table4.date = datedate(table4)
+
+#t  = [1,2,3,4]
+#plt.figure(figsize=(25,20))
+#for i in range(1,16):
+#    plt.subplot(5,3,i)
+#    plt.plot(t)
+#
+#plt.show()
+
+plt.figure(figsize=(25,20))
+for i in range(len(table4.itemname.unique())):
+    x = table4.date[table4.itemname==table4.itemname.unique()[i]]
+    y = table4.close_val[table4.itemname==table4.itemname.unique()[i]]
+    print(x)
+    print(y)
+    
+    plt.subplot(5,3,i+1)
+    
+    plt.plot(x,y)
+    plt.xlabel(str(table4.itemcode.unique()[i]))
+#    
+plt.savefig(table4.itemname.unique()[i]+'.jpg')
+plt.show()
+
+
+'''
+#국내 주식
+
+table5 = pd.read_csv('D:/Dev/ml/2_data/st_data_itemChargeFull.tsv',sep='\t')
+#print(table5.head())
+print(table5.itemname.unique())
+
+'''
+def datedate(table):
+    year = [i[:4]for i in table.date.astype(str)]
+    month = [i[4:6] for i in table.date.astype(str)]
+    day = [i[6:] for i in table.date.astype(str)]
+    k = []
+    for i in range(len(year)):
+        a= year[i]
+        b=month[i]
+        c=day[i]
+    
+        k.append(datetime.datetime.strptime(a+b+c,'%Y%m%d'))
+    return k
+
+table5.date = datedate(table5)
+
+
+avg_sigachong = table5.groupby('itemname').market_sum.max()
+avg_sigachong = avg_sigachong.sort_values(ascending=False)
+name = list(avg_sigachong[:500].index)
+name2 = []
+#맨끝자 '우'로 된거 빼기 우선주 제외
+for i in name:
+    if i[-1] == '우':
+        del i
+    else:
+        name2.append(i)
+
+table5_2 = table5.groupby('itemname').frgn_hold_ratio.mean()
+diction = {}
+for i in name2:
+    diction[i] = table5_2[i]
+len(diction.keys())
+
+table5_1 =  pd.read_csv('D:/Dev/ml/2_data/st_data_foreignCharge.tsv',sep='\t')
+table5_1.date = datedate(table5_1)
+
+result = pd.DataFrame(columns=['나스닥 종합','베트남 하노이 HNX','상해종합','니케이225'],index=name2)
+for i in range(len(name2)):
+    correlation1 = pd.DataFrame(table5.close_val[table5.itemname == name2[i]])
+    correlation1 = correlation1.set_index(table5.date[table5.itemname== name2[i]])
+    correlation2 = pd.DataFrame(table5_1.close_val[table5_1.itemname == '나스닥 종합'])
+    correlation2 = correlation2.set_index(table5_1.date[table5_1.itemname == '나스닥 종합'])
+    correlation3 = pd.DataFrame(table5_1.close_val[table5_1.itemname == '베트남 하노이 HNX'])
+    correlation3 = correlation3.set_index(table5_1.date[table5_1.itemname == '베트남 하노이 HNX'])
+    correlation4 = pd.DataFrame(table5_1.close_val[table5_1.itemname == '상해종합'])
+    correlation4 = correlation4.set_index(table5_1.date[table5_1.itemname == '상해종합'])
+    correlation5 = pd.DataFrame(table5_1.close_val[table5_1.itemname == '니케이225'])
+    correlation5 = correlation5.set_index(table5_1.date[table5_1.itemname == '니케이225'])
+    correl2 = pd.concat([correlation1,correlation2],axis=1)
+    correl3 = pd.concat([correlation1,correlation3],axis=1)
+    correl4 = pd.concat([correlation1,correlation4],axis=1)
+    correl5 = pd.concat([correlation1,correlation5],axis=1)
+
+    result.loc[name2[i],'나스닥 종합'] = correl2.corr().values[0,1]
+    result.loc[name2[i],'베트남 하노이 HNX'] = correl3.corr().values[0,1]
+    result.loc[name2[i],'상해종합'] = correl4.corr().values[0,1]
+    result.loc[name2[i],'니케이225'] = correl5.corr().values[0,1]
+    
+
+#외국인 보유비율이 높은 순으로 순위를 매기는 열 추가
+result['foreign'] = diction.values()
+
+result = result.sort_values(by='foreign',ascending=False)
+result
+
+#상위 10개 주식 시각화 시키기
+import matplotlib
+matplotlib.rcParams['font.family'] = 'Malgun Gothic'
+matplotlib.rcParams['axes.unicode_minus']= False
+
+plt.figure(figsize=(16,8))
+
+data = result.iloc[:10,0].values
+plt.bar(range(len(data)),data,width=0.2,label='Nasdaq')
+data1 = result.iloc[:10,1].values
+plt.bar([i+0.2 for i in range(len(data1))],data1,label='Vietnam',width=0.2)
+data2 = result.iloc[:10,2].values
+plt.bar([i-0.2 for i in range(len(data1))],data2,label='China',width=0.2)
+data3 = result.iloc[:10,3].values
+plt.bar([i+0.4 for i in range(len(data1))],data3,label='Nikkei225',width=0.2)
+plt.legend()
+
+x = pd.Series([0,1,2,3,4,5,6,7,8,9])
+plt.xticks(x,result.index[:10])
+plt.grid()
+plt.show()
+
+
+#국내 지수
+table6 = pd.read_csv('../2_data/st_data_koreaIndex.tsv',sep='\t')
+print(table6.head())
+print(table6.info())
+print(table6.columns)
+
+def datedate(table):
+    year = [i[:4]for i in table.date.astype(str)]
+    month = [i[4:6] for i in table.date.astype(str)]
+    day = [i[6:] for i in table.date.astype(str)]
+    k = []
+    for i in range(len(year)):
+        a= year[i]
+        b=month[i]
+        c=day[i]
+    
+        k.append(datetime.datetime.strptime(a+b+c,'%Y%m%d'))
+    return k
+
+table6.date = datedate(table6)
+color = ['green','blue','red']
+for i in range(len(table6.itemcode.unique())):
+    x = table6.date[table6.itemcode==table6.itemcode.unique()[i]]
+    y = table6.close_val[table6.itemcode==table6.itemcode.unique()[i]]
+    plt.figure(figsize=(16,8))
+    plt.plot(x,y,color=color[i])
+    plt.xlabel(table6.itemcode.unique()[i])
+    plt.savefig(table6.itemcode.unique()[i]+'.jpg')
+    plt.show()
+
+
+#해외석유
+table7 = pd.read_csv('../st_data_oilForeign.tsv',sep='\t')
+#print(table7.head())
+#print(table7.itemname.unique())
+#날짜변환
+def datedate(table):
+    year = [i[:4]for i in table.date.astype(str)]
+    month = [i[4:6] for i in table.date.astype(str)]
+    day = [i[6:] for i in table.date.astype(str)]
+    k = []
+    for i in range(len(year)):
+        a= year[i]
+        b=month[i]
+        c=day[i]
+    
+        k.append(datetime.datetime.strptime(a+b+c,'%Y%m%d'))
+    return k
+table7.date = datedate(table7)
+
+for i in range(len(table7.itemcode.unique())):
+    x = table7.date[table7.itemcode==table7.itemcode.unique()[i]]
+    y = table7.close_val[table7.itemcode==table7.itemcode.unique()[i]]
+    plt.figure(figsize=(16,8))
+    plt.plot(x.values,y.values)
+    plt.xlabel(table7.itemcode.unique()[i])
+    plt.savefig('table7'+table7.itemcode.unique()[i]+'.jpg')
+    plt.show()
+
+
+
+#국내 휘발유
+table8 = pd.read_csv('../st_data_oilKorea.tsv',sep='\t')
+print(table8.head())
+print(table8.info())
+print(table8.columns)
+
+def datedate(table):
+    year = [i[:4]for i in table.date.astype(str)]
+    month = [i[4:6] for i in table.date.astype(str)]
+    day = [i[6:] for i in table.date.astype(str)]
+    k = []
+    for i in range(len(year)):
+        a= year[i]
+        b=month[i]
+        c=day[i]
+    
+        k.append(datetime.datetime.strptime(a+b+c,'%Y%m%d'))
+    return k
+table8.date = datedate(table8)
+
+
+x = table8.date
+y = table8.close_val
+plt.figure(figsize=(16,4))
+plt.plot(x,y,color='green',linestyle='dashed')
+#plt.savefig('휘발유.jpg')
+plt.show()
+'''

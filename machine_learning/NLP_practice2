@@ -1,0 +1,77 @@
+# 이제 최종 모델을 돌리기
+# 단게1. sentiment 20171231 까지는 옆의 라벨 데이터를 그대로 복사해서 붙여넣기
+# 단계2 20171231~ 20190814까지는 randomforestclassfier 의 변수  2000  9 를 그대로 사용해서
+# pred를 집어넣기
+# 단계3 20190801~20190830까지 실제 얼마나 들어맞지 계산하고 제일 눈에 띄는 feature를 randomforest로 골라내기
+# kernel 참고
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+import datetime
+import lightgbm as lgb
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+#from xgboost import XGBClassifier
+from sklearn.metrics import accuracy_score
+dataset = pd.read_csv('../Documents/K200.csv')
+dataset.head()
+dataset.set_index('Date',inplace=True)
+#print(type(dataset['beta_close_return01'][1]))
+
+#pd.options.display.max_columns = 20
+
+
+def data_prep(dataset):
+    correct_list = [c for c in dataset.columns if c  not in ['Open','Close','sentiment','label','Vol']]
+    for i in correct_list:
+        dataset[i] = [float(str(ii).replace("%","")) for ii in dataset[i]]
+    dataset['close_raw10'] = (dataset['Close'].shift(1) - dataset['Close'].shift(10))/dataset['Close'].shift(10)
+    dataset['open_raw10'] = (dataset['Open'].shift(1) - dataset['Open'].shift(10))/dataset['Open'].shift(10)
+    dataset['close_rolling10'] = dataset['Close'].rolling(window=10).mean()
+    dataset['close_rolling5'] = dataset['Close'].rolling(window=5).mean()
+    dataset['BetaCloseReturn01'] = dataset['beta_close_return01'].shift(1)
+    dataset['JustCloseReturn01'] = dataset['just_close_return01'].shift(1)
+    dataset['BetaOpenReturn01'] = dataset['beta_open_return01'].shift(1)
+    dataset['JustOpenReturn'] = dataset['just_open_return'].shift(1)
+    
+    market_df = dataset.dropna(axis=0)
+    
+    market_df = market_df[market_df.index>'2017-12-31']
+    
+    return market_df
+
+market_train = data_prep(dataset)
+ 
+fcol = [c for c in market_train.columns if c not in ['label']]
+X = market_train[fcol].values
+r = market_train.label.values
+
+
+scaler = StandardScaler()
+X = scaler.fit_transform(X)
+
+
+X_train, X_test, y_train,y_test = train_test_split(X,r,test_size=0.3,random_state=99)
+    
+params = {'learning_rate':0.01,'max_depth':12,'boosting':'gbdt','objective':'binary',
+          'metric':'auc','is_training_metric':True,'seed':42}
+model = lgb.train(params, train_set = lgb.Dataset(X_train, label=y_train),num_boost_round=2000,
+                  valid_sets=[lgb.Dataset(X_train,label=y_train), lgb.Dataset(X_test,label=y_test)],
+                  verbose_eval=100,early_stopping_rounds=100)   
+    
+    
+df = pd.DataFrame({'imp': model.feature_importance(), 'col':fcol})
+df = df.sort_values(['imp','col'], ascending=[True, False])
+
+    
+    
+    
+    
+    
+    
+    
+    
+    

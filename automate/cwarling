@@ -1,10 +1,13 @@
-#네이버에서 나스닥, 니케이, 다우존스 해외 지수를 텍스트 파일에 옮겨 두는 코드
 from urllib.request import urlopen
 import bs4
-import webbrower
+from bs4 import BeautifulSoup
+import webbrowser
 import datetime as dt
+import selenium
+from selenium import webdriver
+import time
 
-#basic setting
+#Basic setting
 
 def date_format(d):
     d = str(d)
@@ -22,7 +25,7 @@ def dow_nas(i):
     naver_index = 'https://finance.naver.com/world/sise.nhn?symbol=' + i
 
     source = urlopen(naver_index).read()
-    source = bs4.BeautifulSoup(source, 'lxml')
+    source = bs4.BeautifulSoup(source, 'html5lib')
     dates = source.find_all('td', class_='tb_td')
 
     Siga = source.find_all('td', class_='tb_td4')
@@ -53,14 +56,14 @@ for i in index_cd1:
     nas_dow.append(k)
 
 #나스닥 다우존스 텍스트 기입
-dowjones = open('주소/dowjones.txt','a',encoding='utf-8')
+dowjones = open('//Fos_00/!동기화/dowjones.txt','a',encoding='utf-8')
 data = '\n'+nas_dow[0][0]+',1630,'+nas_dow[0][1]+' ,'+nas_dow[0][2]+' ,'+nas_dow[0][3]+' ,'+nas_dow[0][4]+' ,0,0'
 dowjones.write(data)
 dowjones.close()
 
-nasdaq1 = open('주소/1-comp-2.txt','a',encoding='utf-8')
-nasdaq2 = open('주소/COMP_H.txt','a',encoding='utf-8')
-nasdaq3 = open('주소/COMP_휴일.txt','a',encoding='utf-8')
+nasdaq1 = open('//Fos_00/!동기화/1-comp-2.txt','a',encoding='utf-8')
+nasdaq2 = open('//Fos_00/!동기화/COMP_H.txt','a',encoding='utf-8')
+nasdaq3 = open('//Fos_00/!동기화/COMP_휴일.txt','a',encoding='utf-8')
 data ='\n'+ nas_dow[1][0]+',1630,'+nas_dow[1][1]+' ,'+nas_dow[1][2]+' ,'+nas_dow[1][3]+' ,'+nas_dow[1][4]+' ,0,0'
 nasdaq1.write(data)
 nasdaq2.write(data)
@@ -108,8 +111,8 @@ def Nikkei():
     return sise
 
 #니케이 데이터 입력
-nikkei1 = open('주소/Nikkei.txt','a',encoding='utf-8')
-nikkei2 = open('주소/Nikkei2.txt','a',encoding='utf-8')
+nikkei1 = open('//Fos_00/!동기화/Nikkei.txt','a',encoding='utf-8')
+nikkei2 = open('//Fos_00/!동기화/Nikkei2.txt','a',encoding='utf-8')
 k = Nikkei()
 data1 = '\n'+k[0][0]+',1630,'+k[0][1]+' ,'+k[0][2]+' ,'+k[0][3]+' ,'+k[0][4]+' ,0,0'
 data2 = '\n'+k[1][0]+',1630,'+k[1][1]+' ,'+k[1][2]+' ,'+k[1][3]+' ,'+k[1][4]+' ,0,0'
@@ -119,27 +122,34 @@ nikkei1.close()
 nikkei2.close()
 
 
-#put 과 call 시세를 받아적기위한 웹페이지 열기
-webbrowser.open_new("http://marketdata.krx.co.kr/mdi#document=13050302")
+#put 과 call 시세 추출
+driver = webdriver.Chrome(r'D:\chromedriver_win32\chromedriver.exe')
+
+driver.get(url='http://marketdata.krx.co.kr/mdi#document=13050302')
+#크롬드라이버 설정 - 크롬드라이버 정보확인해서 항상 업데이트 되었는지 확인해야 함
+
+time.sleep(5)
+
+title = driver.find_element_by_class_name('CI-GRID-BODY-TABLE-TBODY')
+today_list = title.text.split('\n')[0]
+date = today_list.split(' ')[0]
+call_fluct = str(today_list.split(' ')[1])[:-1]
+put_fluct = str(today_list.split(' ')[2])[:-1]
 
 def put_call():
-    krx_index = 'https://finance.naver.com/world/sise.nhn?symbol=DJI@DJI'
-    source = urlopen(krx_index).read()
-    source = bs4.BeautifulSoup(source, 'lxml')
+    year = date.split('/')[0]
+    month = date.split('/')[1]
+    day = date.split('/')[2]
+    return month+'/'+day+'/'+year
 
-    dates = source.find_all('td', class_='tb_td')
-
-    a = str(dates[0]).replace('<td class="tb_td">', "")
-    a = a.replace('</td>', "")
-    a = date_format(a)
-
-    return a
-
-k = open('주소/call_kk.txt','a',encoding='utf-8')
-r = open('주소/put_kk.txt','a',encoding='utf-8')
-data1 = '\n'+put_call()+',1630,'
-k.write(data1)
-r.write(data1)
+k = open('//Fos_00/!동기화/call_kk.txt','a',encoding='utf-8')
+r = open('//Fos_00/!동기화/put_kk.txt','a',encoding='utf-8')
+data_call = '\n'+put_call()+',1630,'+call_fluct+','+call_fluct+','+call_fluct+','+call_fluct
+data_put = '\n'+put_call()+',1630,'+put_fluct+','+put_fluct+','+put_fluct+','+put_fluct
+k.write(data_call)
+r.write(data_put)
 
 k.close()
 r.close()
+
+driver.quit()

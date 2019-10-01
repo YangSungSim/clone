@@ -1,0 +1,146 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.preprocessing import OneHotEncoder, LabelEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegressionCV
+import xgboost
+from sklearn.ensemble import GradientBoostingRegressor
+import re
+
+train = pd.read_csv('../Documents/FIFA_train.csv')
+test = pd.read_csv('../Documents/FIFA_test.csv')
+
+train.head()
+#pd.options.display.max_columns = 30
+train.describe()
+train.info()
+test.head()
+
+#drop할 열: name
+#hot_encoding: continent, position, prefer_foot
+train.drop(columns='name',inplace=True)
+test.drop(columns='name',inplace=True)
+
+train.continent.value_counts().plot()
+train.position.value_counts().plot()
+train.prefer_foot.value_counts().plot()
+
+label = LabelEncoder()
+onehot = OneHotEncoder()
+
+continent = label.fit_transform(train.continent.values)
+position = label.fit_transform(train.position.values)
+prefer_foot = onehot.fit_transform(train.prefer_foot.values.reshape(-1,1))
+position_onehot = onehot.fit_transform(position.reshape(-1,1))
+continent_onehot = onehot.fit_transform(continent.reshape(-1,1))
+
+####################################################
+continent_test = label.fit_transform(test.continent.values)
+position_test = label.fit_transform(test.position.values)
+prefer_foot_test = onehot.fit_transform(test.prefer_foot.values.reshape(-1,1))
+position_test_onehot = onehot.fit_transform(position_test.reshape(-1,1))
+continent_test_onehot = onehot.fit_transform(continent_test.reshape(-1,1))
+
+prefer_footpd_testpd = pd.DataFrame(prefer_foot_test.toarray(),columns=test.prefer_foot.value_counts().index)
+position_test_pd = pd.DataFrame(position_test_onehot.toarray(),columns=test.position.value_counts().index)
+continent_test_pd = pd.DataFrame(continent_test_onehot.toarray(),columns=test.continent.value_counts().index)
+
+data_test = pd.concat([test.iloc[:,1:],prefer_footpd_testpd,\
+                       position_test_pd,
+                       continent_test_pd],axis=1)
+
+data_test.drop(columns=['continent','position','prefer_foot'],inplace=True)
+
+data_test.contract_until=[int(re.sub('[^0-9]{3}\s[0-9]{1,}[\,]','',i)) for i in test.contract_until]
+
+####################################################
+prefer_footpd = pd.DataFrame(prefer_foot.toarray(),columns=train.prefer_foot.value_counts().index)
+position_pd = pd.DataFrame(position_onehot.toarray(),columns=train.position.value_counts().index)
+continent_pd = pd.DataFrame(continent_onehot.toarray(),columns=train.continent.value_counts().index)
+
+data= train.iloc[:,1:-1]
+target=train.iloc[:,-1]
+
+data2 = pd.concat([data,prefer_footpd,position_pd,continent_pd],axis=1)
+data2.drop(columns=['continent','position','prefer_foot'],inplace=True)
+
+'''
+#visualization
+data3 = pd.concat([data2,target],axis=1)
+data3.contract_until = [int(re.sub('[^0-9]{3}\s[0-9]{1,}[\,]','',i)) for i in data3.contract_until] 
+sns.heatmap(data3.corr())
+#contract_until에 연도만 집어넣을 수 있게 바꾸기
+'''
+data2.contract_until=[int(re.sub('[^0-9]{3}\s[0-9]{1,}[\,]','',i)) for i in data2.contract_until]
+
+#상관도가 높은열: reputation,  stat_overall,
+# stat_potential,  stat_skill_moves
+
+#버전1 minmaxscalar 안시키고 그냥 학습
+#버전2 minmaxscalar 시키고 학습
+
+X_train,X_val,y_train,y_val = train_test_split(data2.values,
+                                               target.values,
+                                               random_state=1,
+                                               test_size=0.2)
+
+#model1. xgboost
+model1 = xgboost.XGBRegressor(max_depth=6,learning_rate=0.01,
+                     objective="reg:squarederror",
+                     gamma=0.01,random_state=0,
+                     n_estimators=5000)
+
+model1.fit(X_train,y_train)
+
+print("학습데이터 모델 성능:",model1.score(X_train,y_train))
+print("테스트데이터 모델 성능:",model1.score(X_val,y_val))
+
+
+
+model2 = GradientBoostingRegressor(learning_rate=0.01, n_estimators=5000,
+                                   subsample=0.3,min_samples_split=2,
+                                   max_depth=6,random_state=0)
+
+
+model2.fit(X_train,y_train)
+
+print("model 2 학습데이터 모델 성능:\n",model2.score(X_train,y_train))
+print("model 2 테스트데이터 모델 성능:\n",model2.score(X_val,y_val))
+
+
+pred = model2.predict(data_test)
+submission = pd.DataFrame()
+submission['value'] = pred
+submission['id'] = test.iloc[:,0]
+submission.to_csv('../Documents/submission_FiFA.csv')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

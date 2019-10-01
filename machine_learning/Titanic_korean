@@ -1,0 +1,125 @@
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from sklearn.preprocessing import StandardScaler
+import xgboost 
+from sklearn.ensemble import AdaBoostClassifier, GradientBoostingClassifier
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+train = pd.read_csv('../Documents/train.csv')
+test = pd.read_csv('../Documents/test.csv')
+train.head()
+pd.options.display.max_columns = 30
+
+#통계 정보 확인(결측지, 정규화 시켜야 하는지 확인)
+train.info()
+train.describe()
+train.columns
+test.info()
+test.describe()
+
+
+#열 삭제
+train.drop(columns=['Ticket','Cabin','Name','Age'],inplace=True)
+test.drop(columns=['Ticket','Cabin','Name','Age'],inplace=True)
+
+#Nan 값 삭제
+train.dropna(axis=0, inplace=True) #100여개 되는 열을 싹 다 날림
+test.Fare[test.Fare.isnull()==True] = 0
+
+#성별과 탑승위치를 one hot encoding
+laencoder = LabelEncoder()
+encoder = OneHotEncoder()
+Embarked_label = laencoder.fit_transform(train.Embarked.values)
+Embarked_one_hot = encoder.fit_transform(Embarked_label.reshape(-1,1))
+
+
+kelly = pd.DataFrame(Embarked_one_hot.toarray(),columns=laencoder.classes_)
+train.reset_index(inplace=True)
+
+train.shape
+kelly.shape
+
+Embarked_label2 = laencoder.fit_transform(test.Embarked.values)
+Embarked_one_hot2 = encoder.fit_transform(Embarked_label2.reshape(-1,1))
+
+kelly2 = pd.DataFrame(Embarked_one_hot2.toarray(),columns=laencoder.classes_)
+test.reset_index(inplace=True)
+#값 대체
+train.Sex[train.Sex=='female'] = 0
+train.Sex[train.Sex=='male'] = 1
+test.Sex[test.Sex=='female'] =0
+test.Sex[test.Sex=='male'] =1
+
+train = pd.concat([train,kelly],axis=1)
+train.drop(columns=['Embarked'],inplace=True)
+
+
+test = pd.concat([test,kelly2],axis=1)
+test.drop(columns=['Embarked'],inplace=True)
+
+#train과 target을 분리시키기
+data = train.iloc[:,3:]
+target = train.loc[:,'Survived']
+
+#test data
+data_test = test.iloc[:,2:]
+
+#age와 fare 때문에 정규화를 시키자
+scaler = StandardScaler()
+data2 = scaler.fit_transform(data)
+
+data_test2 = scaler.transform(data_test)
+
+#train과 val로 나누어서 쪼개기
+X_train,X_val,y_train,y_val = train_test_split(data2,target.values,
+                                               random_state=1)
+
+#model1 xgboost
+'''
+model1 = xgboost.XGBClassifier(objective='binary:logistic',
+                      max_depth=6,
+                      learning_rate=0.01,
+                      n_estimators=5000,
+                      gamma=0.1)
+
+model1.fit(X_train,y_train)
+
+print("학습데이터 평가점수", model1.score(X_train,y_train))
+print("평가데이터 평가점수", model1.score(X_val,y_val))
+'''
+
+model2 = GradientBoostingClassifier(learning_rate=0.01,
+                                    n_estimators=500,
+                                    max_depth=6,
+                                    random_state=0,
+                                    min_samples_split=2)
+
+#model2 gradientboostingclassifier
+
+model2.fit(X_train,y_train)
+
+print("학습데이터 평가점수", model2.score(X_train,y_train))
+print("평가데이터 평가점수", model2.score(X_val,y_val))
+
+#이제 값을 추출하기
+data_test2
+pred = model2.predict(data_test2)
+
+print(pred)
+
+new_dataframe = pd.DataFrame(test['PassengerId'])
+new_dataframe['Survived'] = pred
+new_dataframe.set_index('PassengerId')
+new_dataframe.to_csv('C:/Users/FOS_08/Documents/submission_file.csv')
+
+
+
+
+gender_submission = pd.read_csv('../Documents/gender_submission.csv')
+gender_submission.shape
+new_dataframe.shape
+test.shape
+

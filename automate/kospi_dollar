@@ -1,0 +1,252 @@
+import sys, os
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QAxContainer import *
+from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtWidgets import QPushButton
+from PyQt5.QtWidgets import QLineEdit
+import pandas as pd
+
+
+#코드를 몰라서 코드조회창을 열어야겠다
+
+#코드조회장
+'''
+class IndiWindow3(QMainWindow):
+    def __init__(self):
+        super(IndiWindow3, self).__init__()
+        self.setWindowTitle("IndiExample")
+
+        # 인디의 TR을 처리할 변수를 생성합니다.
+        self.IndiTR = QAxWidget("GIEXPERTCONTROL.GiExpertControlCtrl.1")
+
+        # Indi API event
+        self.IndiTR.ReceiveData.connect(self.ReceiveData)
+        self.IndiTR.ReceiveSysMsg.connect(self.ReceiveSysMsg)
+        self.rqidD = {}  # TR 관리를 위해 사전 변수를 하나 생성합니다.
+
+        # PyQt5를 통해 버튼만들고 함수와 연결시킵니다.
+        btnResearch = QPushButton("코드조회시작", self)
+        btnResearch.setGeometry(20, 70, 50, 20)
+        btnResearch.clicked.connect(self.btn_Search)  # 버튼을 누르면 'btn_Search' 함수가 실행됩니다.
+
+    def btn_Search(self):  # 코드조회하기
+        ret = self.IndiTR.dynamicCall("SetQueryName(QString)", "cfut_mst")
+        rqid = self.IndiTR.dynamicCall("RequestData()")  # 데이터 요청
+        self.rqidD[rqid] = "cfut_mst"
+
+
+    def ReceiveData(self, rqid):
+        TRName = self.rqidD[rqid]
+        print(self.rqidD[rqid])
+        if (TRName == "cfut_mst"):
+
+            nCnt = self.IndiTR.dynamicCall("GetMultiRowcount()")
+            print("print:",nCnt)
+            for i in range(0, nCnt):
+                IndiWindow3.DATA677['표준코드'].append(self.IndiTR.dynamicCall("GetMultiData(int, int)", i, 0))
+                IndiWindow3.DATA677['단축코드'].append(self.IndiTR.dynamicCall("GetMultiData(int, int)", i, 1))
+                IndiWindow3.DATA677['파생상품ID'].append(self.IndiTR.dynamicCall("GetMultiData(int, int)", i, 2))
+                IndiWindow3.DATA677['한글종목명'].append(self.IndiTR.dynamicCall("GetMultiData(int, int)", i, 3))
+
+        self.rqidD.__delitem__(rqid)
+
+
+        # 시스템 메시지를 받은 경우 출력합니다.
+    def ReceiveSysMsg(self, MsgID):
+        print("System Message Received = ", MsgID)
+
+
+
+class MyDialog(QtWidgets.QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle('QMessageBox Example')
+        self.setGeometry(200, 200, 200, 200)  # left top width height
+
+        btn = QtWidgets.QPushButton(self)
+        btn.setGeometry(50, 50, 100, 50)
+        btn.setText('Show')
+        btn.clicked.connect(self.showMessageBox)
+
+    def showMessageBox(self):
+        msgbox = QtWidgets.QMessageBox(self)
+        msgbox.question(self, 'MessageBox title',IndiWindow3.DATA677 , QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+'''
+
+'''
+#원달러시세.csv 걷기
+class IndiWindow3(QMainWindow):
+    def __init__(self):
+        super(IndiWindow3, self).__init__()
+        self.setWindowTitle("IndiExample")
+
+        # 인디의 TR을 처리할 변수를 생성합니다.
+        self.IndiTR = QAxWidget("GIEXPERTCONTROL.GiExpertControlCtrl.1")
+
+        # Indi API event
+        self.IndiTR.ReceiveData.connect(self.ReceiveData)
+        self.IndiTR.ReceiveSysMsg.connect(self.ReceiveSysMsg)
+        self.rqidD = {}  # TR 관리를 위해 사전 변수를 하나 생성합니다.
+
+        # PyQt5를 통해 버튼만들고 함수와 연결시킵니다.
+        btnResearch = QPushButton("677", self)
+        btnResearch.setGeometry(20, 50, 50, 20)
+        btnResearch.clicked.connect(self.btn_Search)  # 버튼을 누르면 'btn_Search' 함수가 실행됩니다.
+
+    def btn_Search(self):  # 상품선물 single input field
+        ret = self.IndiTR.dynamicCall("SetQueryName(QString)", "TR_CFCHART")
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 0, "175PA")  # 단축코드(원달러는 뭐지?)
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 1, "1")  # 1:분데이터
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 2, "1")  # 분데잍 간격:1분
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 3, "00000000") #분데이터 요청시 00000000
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 4, "99999999") #분데이터 요청시 9999999
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 5, "1000") #조회갯수
+
+        rqid = self.IndiTR.dynamicCall("RequestData()")  # 데이터 요청
+        self.rqidD[rqid] = "TR_CFCHART"
+
+    def ReceiveData(self, rqid):
+        TRName = self.rqidD[rqid]
+
+        if (TRName == "TR_CFCHART"):
+            nCnt = self.IndiTR.dynamicCall("GetMultiRowcount()")
+
+            for i in range(0, nCnt):
+                IndiWindow3.DATA677['Date'].append(self.IndiTR.dynamicCall("GetMultiData(int, int)", i, 0))
+                IndiWindow3.DATA677['Time'].append(self.IndiTR.dynamicCall("GetMultiData(int, int)", i, 1))
+                IndiWindow3.DATA677['Open'].append(self.IndiTR.dynamicCall("GetMultiData(int, int)", i, 2))
+                IndiWindow3.DATA677['High'].append(self.IndiTR.dynamicCall("GetMultiData(int, int)", i, 3))
+                IndiWindow3.DATA677['Low'].append(self.IndiTR.dynamicCall("GetMultiData(int, int)", i, 4))
+                IndiWindow3.DATA677['Close'].append(self.IndiTR.dynamicCall("GetMultiData(int, int)", i, 5))
+                IndiWindow3.DATA677['Volume'].append(self.IndiTR.dynamicCall("GetMultiData(int, int)", i, 9))
+
+
+        self.rqidD.__delitem__(rqid)
+
+
+        # 시스템 메시지를 받은 경우 출력합니다.
+    def ReceiveSysMsg(self, MsgID):
+        print("System Message Received = ", MsgID)
+
+class MyDialog(QtWidgets.QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle('QMessageBox Example')
+        self.setGeometry(200, 200, 200, 200)  # left top width height
+
+        btn = QtWidgets.QPushButton(self)
+        btn.setGeometry(50, 50, 100, 50)
+        btn.setText('Show')
+        btn.clicked.connect(self.showMessageBox)
+
+    def showMessageBox(self):
+        msgbox = QtWidgets.QMessageBox(self)
+        msgbox.question(self, 'MessageBox title',IndiWindow3.DATA397 , QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+'''
+
+
+#시세.csv 걷기
+
+class IndiWindow3(QMainWindow):
+    def __init__(self):
+        super(IndiWindow3, self).__init__()
+        self.setWindowTitle("IndiExample")
+
+        # 인디의 TR을 처리할 변수를 생성합니다.
+        self.IndiTR = QAxWidget("GIEXPERTCONTROL.GiExpertControlCtrl.1")
+
+        # Indi API event
+        self.IndiTR.ReceiveData.connect(self.ReceiveData)
+        self.IndiTR.ReceiveSysMsg.connect(self.ReceiveSysMsg)
+        self.rqidD = {}  # TR 관리를 위해 사전 변수를 하나 생성합니다.
+
+        # PyQt5를 통해 버튼만들고 함수와 연결시킵니다.
+        btnResearch = QPushButton("시세", self)
+        btnResearch.setGeometry(20, 50, 50, 20)
+        btnResearch.clicked.connect(self.btn_Search)  # 버튼을 누르면 'btn_Search' 함수가 실행됩니다.
+
+    def btn_Search(self):  # 상품선물 single input field
+        ret = self.IndiTR.dynamicCall("SetQueryName(QString)", "TR_ICHART")
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 0, "2101")  # 단축코드(원달러는 뭐지?)
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 1, "1")  # 1:분데이터
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 2, "1")  # 분데잍 간격:1분
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 3, "00000000") #분데이터 요청시 00000000
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 4, "99999999") #분데이터 요청시 9999999
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 5, "1000") #조회갯수
+
+        rqid = self.IndiTR.dynamicCall("RequestData()")  # 데이터 요청
+        self.rqidD[rqid] = "TR_ICHART"
+
+    def ReceiveData(self, rqid):
+        TRName = self.rqidD[rqid]
+
+        if (TRName == "TR_ICHART"):
+            nCnt = self.IndiTR.dynamicCall("GetMultiRowcount()")
+
+            for i in range(0, nCnt):
+                IndiWindow3.DATA677['Date'].append(self.IndiTR.dynamicCall("GetMultiData(int, int)", i, 0))
+                IndiWindow3.DATA677['Time'].append(self.IndiTR.dynamicCall("GetMultiData(int, int)", i, 1))
+                IndiWindow3.DATA677['Open'].append(self.IndiTR.dynamicCall("GetMultiData(int, int)", i, 2))
+                IndiWindow3.DATA677['High'].append(self.IndiTR.dynamicCall("GetMultiData(int, int)", i, 3))
+                IndiWindow3.DATA677['Low'].append(self.IndiTR.dynamicCall("GetMultiData(int, int)", i, 4))
+                IndiWindow3.DATA677['Close'].append(self.IndiTR.dynamicCall("GetMultiData(int, int)", i, 5))
+                IndiWindow3.DATA677['Volume'].append(self.IndiTR.dynamicCall("GetMultiData(int, int)", i, 9))
+
+
+        self.rqidD.__delitem__(rqid)
+
+
+        # 시스템 메시지를 받은 경우 출력합니다.
+    def ReceiveSysMsg(self, MsgID):
+        print("System Message Received = ", MsgID)
+
+class MyDialog(QtWidgets.QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle('QMessageBox Example')
+        self.setGeometry(200, 200, 200, 200)  # left top width height
+
+        btn = QtWidgets.QPushButton(self)
+        btn.setGeometry(50, 50, 100, 50)
+        btn.setText('Show')
+        btn.clicked.connect(self.showMessageBox)
+
+    def showMessageBox(self):
+        msgbox = QtWidgets.QMessageBox(self)
+        msgbox.question(self, 'MessageBox title',IndiWindow3.DATA397 , QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+
+
+if __name__ == "__main__":
+    '''
+    코드 조회용 
+    app = QApplication(sys.argv)
+    IndiWindow3 = IndiWindow3()
+    IndiWindow3.show()
+
+    IndiWindow3.DATA677 = {'표준코드': [],'단축코드': [],'파생상품ID': [],'한글종목명': []}
+    app.exec_()
+    '''
+
+    app = QApplication(sys.argv)
+    IndiWindow3 = IndiWindow3()
+    IndiWindow3.show()
+
+    IndiWindow3.DATA677 = {'Date': [], 'Time': [], 'Open': [], 'High': [], 'Low': [], 'Close': [], 'Volume': []}
+    app.exec_()
+
+
+
+
+#print(IndiWindow3.DATA677['단축코드'][6])
+#print(IndiWindow3.DATA677['한글종목명'][6])
+
+for_excel = pd.DataFrame(IndiWindow3.DATA677)
+for_excel['Date'] = for_excel['Date'].apply(lambda x:str(x)[:4]+'-'+str(x)[4:6]+'-'+str(x)[6:])
+for_excel['Time'] = for_excel['Time'].apply(lambda x:str(x)[:2]+':'+str(x)[2:]+":"+"00")
+for_excel.set_index('Date',inplace=True)
+print(for_excel.head())
+#for_excel.to_csv("C:/Users/FOS_08/PycharmProjects/helloworld/01_practice/원달러시세.csv")
+for_excel.to_csv("C:/Users/FOS_08/PycharmProjects/helloworld/01_practice/시세.csv")

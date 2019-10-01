@@ -1,0 +1,104 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+import nltk
+import matplotlib.pyplot as plt
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
+import json
+from pandas.io.json import json_normalize
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import GridSearchCV
+import datetime
+from sklearn.metrics import roc_auc_score
+import warnings
+warnings.filterwarnings('ignore')
+import string
+from nltk.tokenize import sent_tokenize, word_tokenize
+from nltk.corpus import stopwords
+
+
+train = json.load(open('C:/Users/FOS_08/Documents/train.json'))
+train = json_normalize(train)
+test = json.load(open('C:/Users/FOS_08/Documents/test.json'))
+test = json_normalize(test)
+
+print("train:",train.shape[0],"rows:",train.shape[1],"columns")
+print("test:",test.shape[0],"rows:",test.shape[1],"columns")
+
+
+pd.options.display.max_columns=300
+test.head()
+train['request_text']
+k=train['requester_received_pizza']
+k.value_counts()  # 정답데이터로 빼내야 할 것.
+
+shared_columns2 = set(train.columns)&set(test.columns)
+text_columns = ['request_text','request_text_edit_aware','request_title']
+train.head()
+
+train = train[shared_columns2]
+
+dev_data, valid_data, dev_labels,valid_labels = \
+train_test_split(train,k,test_size=0.2)
+
+dev_data.columns
+success = dev_labels[dev_labels == True]
+failure = dev_labels[dev_labels == False]
+print(round(len(success)/len(dev_data)*100,2))
+
+#달별로 퍼센티지 계산해서 출력하기
+
+dev_data['datetime'] = pd.to_datetime(dev_data['unix_timestamp_of_request_utc'],unit='s')
+dev_data['month'] = dev_data['datetime'].dt.month
+dev_data['year'] = dev_data['datetime'].dt.year
+dev_data['day'] = dev_data['datetime'].dt.dayofweek
+dev_data['time'] = dev_data['datetime'].dt.hour
+
+plt.figure()
+plt.title("distribution of requesti across the year")
+plt.xlabel("Month of the year")
+plt.ylabel("percentage")
+plt.xticks(list(range(12)),['Jan','Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
+plt.plot(list(range(12)),[len(dev_data[dev_data.month == i])/ len(dev_data)*100 for i in range(1,13)],'bo',label='all request')
+
+plt.figure()
+plt.title("distribution of request across the week")
+plt.xlabel("day of the month")
+plt.ylabel("percentage")
+plt.xticks(list(range(7)),['mon','tue','wed','thu','fri','sat','sun'])
+plt.plot(list(range(7)),[len(dev_data[dev_data.day == i])/len(dev_data)*100 for i in range(7)],'bo',label='all request')
+
+plt.figure()
+plt.title("distribution of request across a day")
+plt.xlabel("hour of the day")
+plt.ylabel("percentage")
+plt.xticks(list(range(24)))
+plt.plot(list(range(24)),[len(dev_data[dev_data.time == i])/len(dev_data)*100 for i in range(24)],'bo',label='all request')
+
+stopwordd = set(stopwords.words('english'))
+punctuation = set(string.punctuation)
+blacklist = set.union(stopwordd,punctuation)
+
+def tokenize(s):
+    tokens = ""
+    sentences = sent_tokenize(s.lower())
+    for sentence in sentences:
+        words = word_tokenize(sentence)
+        for word in words:
+            if len(word) and word not in blacklist and not(word.isdigit()):
+                tokens += word+" "
+    
+    return tokens[:-1]
+
+
+
+
+
+
+
+
+
+
+
+
