@@ -6,8 +6,8 @@ from xlrd import xldate_as_tuple,open_workbook
 
 
 try:
-    wb =xlrd.open_workbook("/0선물시세데이타.xlsm")
-    sh = wb.sheet_by_index(0)  #sheet_by_name('선물시세')
+    wb =xlrd.open_workbook("/**********.xlsm")
+    sh = wb.sheet_by_index(0)  #sheet_by_name('****')
 except IOError:
     print("file error, please check excel file")
     exit()
@@ -47,21 +47,21 @@ for i in range(len(row_list)):
     sum2.append([row_list[i],sum2_list[i]])
 
 
-#메모장에다가 입력시키기
+
 
 sum1_txt = open('/sum1.txt','r')
 sum2_txt = open('/sum2.txt','r')
 
 i = sum1_txt.readlines()
-lt = i[len(i)-1].split(',')[0]   #메모장의 맨 마지막 날짜 추출
+lt = i[len(i)-1].split(',')[0]  
 
 
 for i in range(len(sum1)):
-    if lt==sum1[i][0]:         #메모장의 맨 마지막 날짜와 sum1리스트 날짜가 같으면
+    if lt==sum1[i][0]:        
         k = i+1
 
 memo = []
-for i in range(k,len(sum1)):   #메모장 다음 부터 sum1의 마지막까지
+for i in range(k,len(sum1)):  
     memo.append(sum1[i])
 
 
@@ -82,7 +82,7 @@ print(memo2)
 sum1_txt.close()
 sum2_txt.close()
 
-#메모장 기록
+
 
 
 sum1_txt = open('/sum1.txt','a')

@@ -22,7 +22,7 @@ excel.visible = True
 excel.DisplayAlerts = False
 wb = excel.Workbooks.Open('/$Account.xlsm')
 ws = wb.Worksheets('Major')
-excel.Application.run('ChangeXlsx')
+excel.Application.run('******')
 time.sleep(3)
 
 #$Account 파일을 닫으면 안됨.
@@ -31,9 +31,9 @@ time.sleep(3)
 xl = win32com.client.Dispatch('excel.Application')
 xl.Visible = True
 xl.DisplayAlerts = False
-wb = xl.Workbooks.Open('/0선물정산.xlsm')
-ws = wb.Worksheets('매매손익')
-ws2 = wb.Worksheets('자금운용')
+wb = xl.Workbooks.Open('/*****.xlsm')
+ws = wb.Worksheets('*****')
+ws2 = wb.Worksheets('*****')
 time.sleep(3)
 
 
@@ -51,7 +51,7 @@ today = time.strftime('%Y-%m-%d',time.localtime(time.time()))
 today_index = 4638+list.index(today)
 ws.Cells(today_index,8).Select()
 
-xl.Application.run('선물정산')
+xl.Application.run('*****')
 time.sleep(5)
 
 ws2.Select()

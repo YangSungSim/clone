@@ -8,7 +8,7 @@ matplotlib.rcParams['axes.unicode_minus']= False
 
 
 #환율
-table = pd.read_csv('D:/Dev/ml/2_data/st_data_exchange.tsv',sep='\t')
+table = pd.read_csv('../st_data_exchange.tsv',sep='\t')
 pd.options.display.max_columns = 30
 table.itemname2.unique()
 table.columns
@@ -55,7 +55,7 @@ plt.show()
 
 '''
 #해외지수
-table1 = pd.read_csv('D:/Dev/ml/2_data/st_data_foreignCharge.tsv',sep='\t')
+table1 = pd.read_csv('../st_data_foreignCharge.tsv',sep='\t')
 #print(table1.head())
 #print(table1.columns)
 
@@ -95,7 +95,7 @@ plt.show()
 
 
 #외국 금시세
-table2 = pd.read_csv('D:/Dev/ml/2_data/st_data_goldForeign.tsv',sep='\t')
+table2 = pd.read_csv('../st_data_goldForeign.tsv',sep='\t')
 print(table2.head())
 print(table2.info())
 print(table2.itemname.unique())
@@ -135,7 +135,7 @@ plt.show()
 
 
 #국내 금시세
-table3 = pd.read_csv('D:/Dev/ml/2_data/st_data_goldKorea.tsv',sep='\t')
+table3 = pd.read_csv('../st_data_goldKorea.tsv',sep='\t')
 #print(table3.head())
 #pd.options.display.max_columns = 30
 #print(table3.info())
@@ -166,7 +166,7 @@ plt.show()
 
 
 #원자재
-table4 = pd.read_csv('D:/Dev/ml/2_data/st_data_goodsForeign.tsv',sep='\t')
+table4 = pd.read_csv('../st_data_goodsForeign.tsv',sep='\t')
 #print(table4.head())
 #print(table4.info())
 #print(table4.columns)
@@ -213,7 +213,7 @@ plt.show()
 '''
 #국내 주식
 
-table5 = pd.read_csv('D:/Dev/ml/2_data/st_data_itemChargeFull.tsv',sep='\t')
+table5 = pd.read_csv('../st_data_itemChargeFull.tsv',sep='\t')
 #print(table5.head())
 print(table5.itemname.unique())
 
@@ -251,7 +251,7 @@ for i in name2:
     diction[i] = table5_2[i]
 len(diction.keys())
 
-table5_1 =  pd.read_csv('D:/Dev/ml/2_data/st_data_foreignCharge.tsv',sep='\t')
+table5_1 =  pd.read_csv('../st_data_foreignCharge.tsv',sep='\t')
 table5_1.date = datedate(table5_1)
 
 result = pd.DataFrame(columns=['나스닥 종합','베트남 하노이 HNX','상해종합','니케이225'],index=name2)

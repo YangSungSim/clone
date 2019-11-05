@@ -69,7 +69,7 @@ sample.set_index(sample.iloc[:,0],inplace=True)
 sample.drop(columns=[1],inplace=True)
 # 라벨데이터를 옆에다 집어넣어야함. 전처리 종료
 
-sample.to_csv("C:/Users/FOS_08/Documents/test.csv")
+sample.to_csv("../Documents/test.csv")
 
 ########################################################
 #train 2010-01-04  ~2017-12-28

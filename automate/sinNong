@@ -5,7 +5,7 @@ import time
 import easygui
 import webbrowser
 
-##################신한아이#####################
+
 
 app = application.Application(backend='win32')
 app.start(r'주소\gmshstarter.exe')
@@ -36,9 +36,6 @@ time.sleep(2)
 pyautogui.click(x=1235,y=458)
 
 time.sleep(45)
-
-
-#######################ts실행#####################
 
 app = application.Application(backend='win32')
 app.start(r'주소/stsstarter.exe')
@@ -74,7 +71,6 @@ pyautogui.hotkey('ctrl','o')
 time.sleep(15)
 
 
-##################### nhfoslab ##################
 app = application.Application(backend='win32')
 app.start(r'주소\wmtslogin.exe')
 print('cp load done')
@@ -116,7 +112,6 @@ pyautogui.press('enter')
 time.sleep(25)
 
 
-################## investing.com ####################
 webbrowser.open_new("인터넷주소")
 time.sleep(3)
 webbrowser.open_new("인터넷주소")
@@ -124,7 +119,7 @@ time.sleep(3)
 webbrowser.open_new("인터넷주소")
 
 time.sleep(10)
-################신한아이 인디실행####################
+
 
 app = application.Application(backend='win32')
 app.start(r'주소\giexpertstarter.exe')

@@ -1,4 +1,4 @@
-#신한 증권 API에서 당일 거래한 손익 및 총자산 거래 기록을 받아서 
+#신한 증권 API에서  기록을 받아서 
 #메모장으로 출력합니다.
 
 import sys, os
@@ -36,25 +36,23 @@ class IndiWindow(QMainWindow):
         for i in btn_Series:
             btnResearch.clicked.connect(i)  # 버튼을 누르면 'btn_Search' 함수가 실행됩니다.
 
-    # 계좌번호를 입력하고 버튼을 누르면 조회를 요청합니다.
-    def btn_Search(self):  # 397 총자산
-        # SABA200QB : 계좌별 잔고 조회를 요청할 TR입니다.
-        # 해당 TR의 필드입력형식에 맞춰서 TR을 날리면 됩니다.
-
+    
+    def btn_Search(self):  
+     
         ret = self.IndiTR.dynamicCall("SetQueryName(QString)", "SABA655Q1")
-        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 0, "04111146397")  # 계좌번호
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 0, "**********")  
         ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 1, "01")  # 상품구분 항상 '01'
-        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 2, "****")  # 비밀번호
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 2, "****")  
 
         rqid = self.IndiTR.dynamicCall("RequestData()")  # 데이터 요청
         self.rqidD[rqid] = "SABA655Q1"
 
     def btn_Search1(self):
-        # 397 매매내역조회
+        
         ret = self.IndiTR.dynamicCall("SetQueryName(QString)", "SABC203Q2")
-        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 0, "04111146397")  # 계좌번호
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 0, "*********") 
         ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 1, "****")  # 상품구분 항상 '01'
-        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 2, "%")  # 비밀번호
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 2, "%")  
         ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 3, "%")
         ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 4, "000")
         ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 5, "1")
@@ -64,27 +62,27 @@ class IndiWindow(QMainWindow):
         self.rqidD[rqid] = "SABC203Q2"
 
     def btn_Search2(self):
-        # 397계좌 수수료 당일 매매 손익
+        
         ret = self.IndiTR.dynamicCall("SetQueryName(QString)", "SABC670Q2")
-        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 0, "04111146397")  # 계좌번호
-        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 1, "****")  # 비밀번호
-        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 2, str(today))  # 조회시작일
-        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 3, str(today))  # 조회마지막일
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 0, "*********") 
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 1, "****")  
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 2, str(today))  
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 3, str(today))  
         ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 4, "0")  # 구분코드 선물:1
-        rqid = self.IndiTR.dynamicCall("RequestData()")  # 데이터 요청
+        rqid = self.IndiTR.dynamicCall("RequestData()")  
         self.rqidD[rqid] = "SABC670Q2"
 
 
-    # 요청한 TR로 부터 데이터를 받는 함수입니다.
+
     def ReceiveData(self, rqid):
-        # TR을 날릴때 ID를 통해 TR이름을 가져옵니다.
+        
         TRName = self.rqidD[rqid]
 
-        if (TRName == "SABA655Q1"):  #397 총자산
+        if (TRName == "SABA655Q1"): 
 
             self.DATA397['총자산'].append(int(self.IndiTR.dynamicCall("GetSingleData(int)", 1)))
 
-        if TRName == "SABC203Q2":  # 397 계좌 매매손익 보고서
+        if TRName == "SABC203Q2": 
             nCnt = self.IndiTR.dynamicCall("GetMultiRowcount()")
             DATA2 = {}
             buy_sum = 0
@@ -113,7 +111,7 @@ class IndiWindow(QMainWindow):
             self.DATA397["매도약정금액"].append(sell_sum)
             self.DATA397["체결수량"].append(chegeul1)
 
-        if TRName == "SABC670Q2":  # 397 계좌 당일 손익 과 수수료
+        if TRName == "SABC670Q2":  
             nCnt = self.IndiTR.dynamicCall("GetMultiRowcount()")
             for i in range(0,nCnt):
                 self.DATA397['수수료'].append(self.IndiTR.dynamicCall("GetMultiData(int, int)", i, 5))
@@ -131,16 +129,16 @@ class IndiWindow1(QMainWindow):
         super(IndiWindow1, self).__init__()
         self.setWindowTitle("IndiExample")
 
-        # 인디의 TR을 처리할 변수를 생성합니다.
+        
         self.IndiTR = QAxWidget("GIEXPERTCONTROL.GiExpertControlCtrl.1")
 
-        # Indi API event
+   
         self.IndiTR.ReceiveData.connect(self.ReceiveData)
         self.IndiTR.ReceiveSysMsg.connect(self.ReceiveSysMsg)
         self.rqidD = {}  # TR 관리를 위해 사전 변수를 하나 생성합니다.
 
         # PyQt5를 통해 버튼만들고 함수와 연결시킵니다.
-        btnResearch = QPushButton("505", self)
+        btnResearch = QPushButton("***", self)
         btnResearch.setGeometry(20, 50, 50, 20)
         btn_Series = [self.btn_Search,self.btn_Search1]
         for i in btn_Series:
@@ -148,18 +146,18 @@ class IndiWindow1(QMainWindow):
 
     def btn_Search(self):  # 505 총자산
         ret = self.IndiTR.dynamicCall("SetQueryName(QString)", "SABA655Q1")
-        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 0, "04111184505")  # 계좌번호
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 0, "*********")  
         ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 1, "01")  # 상품구분 항상 '01'
-        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 2, "****")  # 비밀번호
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 2, "****")  
 
         rqid = self.IndiTR.dynamicCall("RequestData()")  # 데이터 요청
         self.rqidD[rqid] = "SABA655Q1"
 
     def btn_Search1(self):  #505 전일금일
         ret = self.IndiTR.dynamicCall("SetQueryName(QString)", "SABA623Q1")
-        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 0, "04111184505")  # 계좌번호
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 0, "*********")  
         ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 1, "01")  # 상품구분 항상 '01'
-        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 2, "****")  # 비밀번호
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 2, "****")  
 
         rqid = self.IndiTR.dynamicCall("RequestData()")  # 데이터 요청
         self.rqidD[rqid] = "SABA623Q1"
@@ -171,7 +169,7 @@ class IndiWindow1(QMainWindow):
 
             self.DATA505['총자산'].append(int(self.IndiTR.dynamicCall("GetSingleData(int)", 1)))
 
-        if (TRName == "SABA623Q1"):  # 505계좌 당일 손익
+        if (TRName == "SABA623Q1"): 
             nCnt = self.IndiTR.dynamicCall("GetSingleRowCount()")
             DATA1 = {}
             DATA1['전일예수금'] = int(self.IndiTR.dynamicCall("GetSingleData(int)", 4))
@@ -202,26 +200,26 @@ class IndiWindow2(QMainWindow):
         self.rqidD = {}  # TR 관리를 위해 사전 변수를 하나 생성합니다.
 
         # PyQt5를 통해 버튼만들고 함수와 연결시킵니다.
-        btnResearch = QPushButton("488", self)
+        btnResearch = QPushButton("***", self)
         btnResearch.setGeometry(20, 50, 50, 20)
         btn_Series = [self.btn_Search,self.btn_Search1]
         for i in btn_Series:
             btnResearch.clicked.connect(i)  # 버튼을 누르면 'btn_Search' 함수가 실행됩니다.
 
-    def btn_Search(self):  # 488 총자산
+    def btn_Search(self):  
         ret = self.IndiTR.dynamicCall("SetQueryName(QString)", "SABA655Q1")
-        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 0, "04111127488")  # 계좌번호
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 0, "*********") 
         ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 1, "01")  # 상품구분 항상 '01'
-        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 2, "****")  # 비밀번호
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 2, "****")  
 
         rqid = self.IndiTR.dynamicCall("RequestData()")  # 데이터 요청
         self.rqidD[rqid] = "SABA655Q1"
 
     def btn_Search1(self):  #488 전일금일
         ret = self.IndiTR.dynamicCall("SetQueryName(QString)", "SABA623Q1")
-        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 0, "04111127488")  # 계좌번호
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 0, "*********")  
         ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 1, "01")  # 상품구분 항상 '01'
-        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 2, "****")  # 비밀번호
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 2, "****")  
 
         rqid = self.IndiTR.dynamicCall("RequestData()")  # 데이터 요청
         self.rqidD[rqid] = "SABA623Q1"
@@ -229,11 +227,11 @@ class IndiWindow2(QMainWindow):
     def ReceiveData(self, rqid):
         TRName = self.rqidD[rqid]
 
-        if (TRName == "SABA655Q1"):  # 505 총자산
+        if (TRName == "SABA655Q1"):  
 
             self.DATA488['총자산'].append(int(self.IndiTR.dynamicCall("GetSingleData(int)", 1)))
 
-        if (TRName == "SABA623Q1"):  # 505계좌 당일 손익
+        if (TRName == "SABA623Q1"):  
             nCnt = self.IndiTR.dynamicCall("GetSingleRowCount()")
             DATA1 = {}
             DATA1['전일예수금'] = int(self.IndiTR.dynamicCall("GetSingleData(int)", 4))
@@ -265,15 +263,15 @@ class IndiWindow3(QMainWindow):
         self.rqidD = {}  # TR 관리를 위해 사전 변수를 하나 생성합니다.
 
         # PyQt5를 통해 버튼만들고 함수와 연결시킵니다.
-        btnResearch = QPushButton("677", self)
+        btnResearch = QPushButton("***", self)
         btnResearch.setGeometry(20, 50, 50, 20)
-        btnResearch.clicked.connect(self.btn_Search)  # 버튼을 누르면 'btn_Search' 함수가 실행됩니다.
+        btnResearch.clicked.connect(self.btn_Search)  
 
     def btn_Search(self):  # 677 총자산
         ret = self.IndiTR.dynamicCall("SetQueryName(QString)", "SABA655Q1")
-        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 0, "04111156677")  # 계좌번호
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 0, "**********")  
         ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 1, "01")  # 상품구분 항상 '01'
-        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 2, "****")  # 비밀번호
+        ret = self.IndiTR.dynamicCall("SetSingleData(int, QString)", 2, "****")  
 
         rqid = self.IndiTR.dynamicCall("RequestData()")  # 데이터 요청
         self.rqidD[rqid] = "SABA655Q1"
@@ -281,7 +279,7 @@ class IndiWindow3(QMainWindow):
     def ReceiveData(self, rqid):
         TRName = self.rqidD[rqid]
 
-        if (TRName == "SABA655Q1"):  # 677 총자산
+        if (TRName == "SABA655Q1"):  
 
             self.DATA677['총자산'].append(int(self.IndiTR.dynamicCall("GetSingleData(int)", 1)))
 
@@ -353,7 +351,7 @@ def for_397(a):
     kk = [[i,k] for i,k in zip(a.keys(),k)]
     return kk
 
-def for_488505(b):
+def for_******(b):
     k = []
     for i in b.values():
         i = str(i).replace("[", "")
@@ -365,7 +363,7 @@ def for_488505(b):
     kk = [[i, k] for i, k in zip(b.keys(), k)]
     return kk
 
-def for_677(d):
+def for_****(d):
     k = []
     for i in d.values():
         i = str(i).replace("[", "")
@@ -387,9 +385,9 @@ d = for_677(IndiWindow3.DATA677)
 print("a 딕셔너리는?: ")
 print(a)
 
-fname = 'C:/Users/FOS_08/Desktop/오늘의숫자.txt'
+fname = '../Desktop/오늘의숫자.txt'
 k = open(fname,'w')
-k.write('[397입니다]\n')
+k.write('[***입니다]\n')
 k.write('\n')
 for i in a:
     k.write(i[0]+'\n'+'\n')
@@ -413,7 +411,7 @@ for i in a:
             k.write(str(i[1])[:-8] + ',' + str(i[1])[-8:-5] + ',' + str(i[1])[-5:] + '\n' + '\n')
 
 k.write('\n')
-k.write('[505입니다]'+'\n')
+k.write('[***입니다]'+'\n')
 k.write('\n')
 for i in b:
     k.write(i[0]+'\n'+'\n')
@@ -426,7 +424,7 @@ for i in b:
         k.write(str(i[1])[:-6] + ',' + str(i[1])[-6:-3] + ',' + str(i[1])[-3:] + '\n' + '\n')
 
 k.write('\n')
-k.write('[488입니다]'+'\n')
+k.write('[***입니다]'+'\n')
 k.write('\n')
 for i in c:
     k.write(i[0]+'\n'+'\n')
@@ -439,7 +437,7 @@ for i in c:
         k.write(str(i[1])[:-6] + ',' + str(i[1])[-6:-3] + ',' + str(i[1])[-3:] + '\n' + '\n')
 
 k.write('\n')
-k.write('[677입니다]'+'\n')
+k.write('[***입니다]'+'\n')
 k.write('\n')
 for i in d:
     k.write(i[0]+'\n'+'\n')

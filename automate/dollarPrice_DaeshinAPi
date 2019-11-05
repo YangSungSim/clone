@@ -1,5 +1,4 @@
 #대신 증권 API에서 원달러 선물의 당일 시가,고가,저가, 종가를 불러오는 코드
-#거래량은 직접 손으로 입력하기 위하여 easygui 사용
 
 from datetime import date
 import win32com.client

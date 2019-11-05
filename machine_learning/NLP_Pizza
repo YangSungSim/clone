@@ -18,9 +18,9 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.corpus import stopwords
 
 
-train = json.load(open('C:/Users/FOS_08/Documents/train.json'))
+train = json.load(open('../Documents/train.json'))
 train = json_normalize(train)
-test = json.load(open('C:/Users/FOS_08/Documents/test.json'))
+test = json.load(open('../Documents/test.json'))
 test = json_normalize(test)
 
 print("train:",train.shape[0],"rows:",train.shape[1],"columns")

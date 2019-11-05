@@ -113,7 +113,7 @@ print(pred)
 new_dataframe = pd.DataFrame(test['PassengerId'])
 new_dataframe['Survived'] = pred
 new_dataframe.set_index('PassengerId')
-new_dataframe.to_csv('C:/Users/FOS_08/Documents/submission_file.csv')
+new_dataframe.to_csv('../Documents/submission_file.csv')
 
 
 

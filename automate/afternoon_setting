@@ -10,7 +10,7 @@ import comtypes.client
 
 ##############첫번째 신한아이 실행################
 app = application.Application(backend='win32')
-app.start(r'C:\SHINHAN-i\2004\gmshstarter.exe')
+app.start(r'..\gmshstarter.exe')
 
 def ret_wind11():
     return app.connect(title='로그인').Dialog
@@ -33,12 +33,9 @@ cert_edit.type_keys('vhtmfoq=679')
 pyautogui.click(x=1190,y=598)
 time.sleep(60)
 
-##############두번째 신한아이 실행################
+#
 easygui.msgbox("두번째")
-'''
-x,y = pyautogui.position()
-print(x,y)
-'''
+
 time.sleep(2)
 pyautogui.click(x=958,y=32)
 time.sleep(1)
@@ -50,15 +47,15 @@ pyautogui.press('enter')
 time.sleep(15)
 
 pyautogui.click(x=1123,y=491)
-pyautogui.typewrite('imanda69')
+pyautogui.typewrite('*******')
 time.sleep(1)
 
 pyautogui.click(x=1152,y=521)
-pyautogui.typewrite('djsej67')
+pyautogui.typewrite('*******')
 time.sleep(1)
 
 pyautogui.click(x=1132,y=554)
-pyautogui.typewrite('vhtmfoq=689')
+pyautogui.typewrite('*********')
 '''
 time.sleep(2)
 def ret_wind11():
@@ -67,29 +64,28 @@ dlg = timings.wait_until_passes(20,0.5, ret_wind11)
 
 ID_dit = dlg.Edit1
 ID_dit.set_focus()
-ID_dit.type_keys('imanda69')
+ID_dit.type_keys('*******')
 time.sleep(1)
 
 pass_edit = dlg.Edit2
 pass_edit.set_focus()
-pass_edit.type_keys('djsej67')
+pass_edit.type_keys('*******')
 time.sleep(1)
 
 cert_edit = dlg.Edit3
 cert_edit.set_focus()
-cert_edit.type_keys('vhtmfoq=689')
+cert_edit.type_keys('*********')
 '''
 pyautogui.click(x=1190,y=598)
 
 time.sleep(45)
 
-######################nh 권정태 로그인########
+
 app = application.Application(backend='win32')
-app.start(r'C:\WMV\QV\wmtslogin.exe')
-print('nh 권정태 로그인')
+app.start(r'..\wmtslogin.exe')
+
 time.sleep(1)
 
-print('enter done')
 
 def ret_wind3():
     return app.connect(title='QV-Login').Dialog
@@ -100,38 +96,35 @@ time.sleep(3)
 
 id_edit = dlg.Edit1
 id_edit.set_focus()
-id_edit.type_keys('imanda')
+id_edit.type_keys('******')
 
 
 time.sleep(3)
 
 pass_edit = dlg.Edit2
 pass_edit.set_focus()
-pass_edit.type_keys('foqtm67')
+pass_edit.type_keys('******')
 
 time.sleep(3)
 
 
 cert_edit = dlg.Edit3
 cert_edit.set_focus()
-cert_edit.type_keys('vhtmfoq=679')
+cert_edit.type_keys('******')
 
 time.sleep(3)
 
 
-pyautogui.press('enter')
 
 time.sleep(40)
 
-##############nh 문현주 로그인##############
+
 app = application.Application()
-app.start(r'C:\WMV\QV\wmtslogin.exe')
-print('nh 문현주 로그인')
-time.sleep(1)
+app.start(r'..\wmtslogin.exe')
 
 #pyautogui.typewrite('\n', interval=0.1)
 
-print('enter done')
+
 
 def ret_wind3():
     return app.connect(title='QV-Login').Dialog
@@ -142,22 +135,21 @@ time.sleep(3)
 
 id_edit = dlg.Edit1
 id_edit.set_focus()
-id_edit.type_keys('imanda69')
+id_edit.type_keys('*******')
 
 
 time.sleep(1)
 
 pass_edit = dlg.Edit2
 pass_edit.set_focus()
-pass_edit.type_keys('foqtm69')
+pass_edit.type_keys('*******')
 
 time.sleep(1)
 
 cert_edit = dlg.Edit3
 cert_edit.set_focus()
-cert_edit.type_keys('vhtmfoq=689')
+cert_edit.type_keys('**************')
 
-time.sleep(1)
 
 
 pyautogui.press('enter')
@@ -169,7 +161,7 @@ easygui.msgbox("싸이칸")
 
 ################# 싸이칸 로그인 ################
 app = application.Application(backend='win32')
-app.start(r'C:\하이투자증권\cyKhanPlus\exe\cyKhanPlus.exe')
+app.start(r'..\cyKhanPlus.exe')
 time.sleep(1)
 
 def ret_wind3():
@@ -181,13 +173,13 @@ pyautogui.typewrite('\n', interval=0.1)
 
 pass_edit = dlg.Edit2
 pass_edit.set_focus()
-pass_edit.type_keys('tldrmf67')
+pass_edit.type_keys('*******')
 print('done pw')
 time.sleep(2)
 
 cert_edit = dlg.Edit3
 cert_edit.set_focus()
-cert_edit.type_keys('vhtmfoq=679')
+cert_edit.type_keys('*******')
 print('done cert')
 time.sleep(2)
 
@@ -196,25 +188,7 @@ btn.click()
 
 time.sleep(30)
 
-################ 현대선물 로그인#################
+
 
 app = application.Application(backend='win32')
-app.start(r'C:\현대선물\ezFutures\HDFStarter.exe')
-
-
-''''
-pyautogui.click(x=1161,y=463)
-easygui.msgbox("원격탐지 클릭")
-
-pyautogui.typewrite('tldrmf67')
-easygui.msgbox("원격탐지 클릭")
-time.sleep(2)
-
-pyautogui.click(x=1151,y=489)
-pyautogui.typewrite('vhtmfoq=679')
-easygui.msgbox("원격탐지 클릭")
-
-time.sleep(3)
-pyautogui.click(x=1232,y=460)
-'''
-
+app.start(r'..\HDFStarter.exe')

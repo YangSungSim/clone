@@ -77,21 +77,20 @@ class MyDialog(QtWidgets.QDialog):
 '''
 
 '''
-#원달러시세.csv 걷기
+
 class IndiWindow3(QMainWindow):
     def __init__(self):
         super(IndiWindow3, self).__init__()
         self.setWindowTitle("IndiExample")
 
-        # 인디의 TR을 처리할 변수를 생성합니다.
+        
         self.IndiTR = QAxWidget("GIEXPERTCONTROL.GiExpertControlCtrl.1")
 
-        # Indi API event
+       
         self.IndiTR.ReceiveData.connect(self.ReceiveData)
         self.IndiTR.ReceiveSysMsg.connect(self.ReceiveSysMsg)
         self.rqidD = {}  # TR 관리를 위해 사전 변수를 하나 생성합니다.
 
-        # PyQt5를 통해 버튼만들고 함수와 연결시킵니다.
         btnResearch = QPushButton("677", self)
         btnResearch.setGeometry(20, 50, 50, 20)
         btnResearch.clicked.connect(self.btn_Search)  # 버튼을 누르면 'btn_Search' 함수가 실행됩니다.
@@ -127,7 +126,7 @@ class IndiWindow3(QMainWindow):
         self.rqidD.__delitem__(rqid)
 
 
-        # 시스템 메시지를 받은 경우 출력합니다.
+        
     def ReceiveSysMsg(self, MsgID):
         print("System Message Received = ", MsgID)
 
@@ -148,7 +147,7 @@ class MyDialog(QtWidgets.QDialog):
 '''
 
 
-#시세.csv 걷기
+
 
 class IndiWindow3(QMainWindow):
     def __init__(self):
@@ -199,7 +198,7 @@ class IndiWindow3(QMainWindow):
         self.rqidD.__delitem__(rqid)
 
 
-        # 시스템 메시지를 받은 경우 출력합니다.
+       
     def ReceiveSysMsg(self, MsgID):
         print("System Message Received = ", MsgID)
 
@@ -248,5 +247,5 @@ for_excel['Date'] = for_excel['Date'].apply(lambda x:str(x)[:4]+'-'+str(x)[4:6]+
 for_excel['Time'] = for_excel['Time'].apply(lambda x:str(x)[:2]+':'+str(x)[2:]+":"+"00")
 for_excel.set_index('Date',inplace=True)
 print(for_excel.head())
-#for_excel.to_csv("C:/Users/FOS_08/PycharmProjects/helloworld/01_practice/원달러시세.csv")
-for_excel.to_csv("C:/Users/FOS_08/PycharmProjects/helloworld/01_practice/시세.csv")
+#for_excel.to_csv("../PycharmProjects/helloworld/01_practice/원달러시세.csv")
+for_excel.to_csv("../PycharmProjects/helloworld/01_practice/시세.csv")
