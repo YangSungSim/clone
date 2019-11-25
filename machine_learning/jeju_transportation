@@ -1,0 +1,213 @@
+import pandas as pd
+import numpy as np
+import sklearn
+
+train = pd.read_csv('../FinEng/files/train.csv')
+test = pd.read_csv('../FinEng/files/test.csv')
+bus_bts = pd.read_csv('../FinEng/files/bus_bts.csv')
+submission = pd.read_csv('../FinEng/files/submission_sample.csv')
+
+#요일별로나누기
+train['date'] = pd.to_datetime(train['date'])
+train['weekday'] = train['date'].dt.weekday
+train = pd.get_dummies(train,columns=['weekday'])
+
+test['date'] = pd.to_datetime(test['date'])
+test['weekday'] = test['date'].dt.weekday
+test = pd.get_dummies(test,columns=['weekday'])
+
+
+bus_bts.user_category.value_counts()
+#1번 일반  그외 어린이 청소년 장애 등등.
+
+
+# 한명만 타는 정류장 별로 가중치 부여
+
+#일반이 타는 정류장 갯수 630개 전체 정류장 갯수인 630개와 동일
+k = dict(list(bus_bts[bus_bts.user_count==1].groupby('geton_date')['bus_route_id'])).values()
+
+frequency_stop = []
+for i in k:
+    length = int(len(i))
+    frequency_stop.append(list(zip(i.value_counts().index[:length],list(range(length,0,-1)))))
+
+    total_sum = {}
+    count = 0
+    for i in frequency_stop:
+        count +=1
+        for j in i:
+            stop_number,importance = j
+            try:
+                if count == 1:
+                    total_sum[str(stop_number)] = importance
+                elif (count>1):
+                    total_sum[str(stop_number)]+= importance
+            except KeyError:
+                total_sum[str(stop_number)] = importance
+
+#train 정류장에는 bus_bts에는 없는 정류장이 하나 있는 것을 발견
+
+kelly = []
+for i in train.bus_route_id:
+    try:
+        kelly.append(total_sum[str(i)])
+    except KeyError:
+        kelly.append(0)
+train['bus_route_importance'] = kelly
+
+
+
+# 일반인이 타는 정류장은 가중치 높게
+
+
+k_adult = dict(list(bus_bts[bus_bts.user_category==1].groupby('geton_date')['bus_route_id'])).values()
+
+frequency_stop_adult = []
+for i in k:
+    length = int(len(i))
+    frequency_stop_adult.append(list(zip(i.value_counts().index[:length],list(range(length,0,-1)))))
+
+total_sum_adult = {}
+count = 0
+for i in frequency_stop_adult:
+    count +=1
+    for j in i:
+        stop_number,importance = j
+        try:
+            if count == 1:
+                total_sum_adult[str(stop_number)] = importance
+            elif (count>1):
+                total_sum_adult[str(stop_number)]+= importance
+        except KeyError:
+            total_sum_adult[str(stop_number)] = importance
+
+kelly2 = []
+for i in train.bus_route_id:
+    try:
+        kelly2.append(total_sum_adult[str(i)])
+    except KeyError:
+        kelly2.append(0)
+train['bus_adult_importance'] = kelly2
+
+
+#18:00에서 19:59 사이에 자주 출현되는 정류장 리스트를 뽑아내기
+bus_bts['hour'] = [int(i.split(':')[:1][0]) for i in bus_bts.geton_time]
+
+rush_hour = dict(list(bus_bts[bus_bts.hour.isin([6,7])].groupby('geton_date')['bus_route_id'])).values()
+
+rush_hour_stop = []
+for i in rush_hour:
+    length = int(len(i))
+    rush_hour_stop.append(list(zip(i.value_counts().index[:length],list(range(length,0,-1)))))
+
+
+
+total_sum_rushhour = {}
+count = 0
+for i in rush_hour_stop:
+    count +=1
+    for j in i:
+        stop_number,importance = j
+        try:
+            if count == 1:
+                total_sum_rushhour[str(stop_number)] = importance
+            elif (count>1):
+                total_sum_rushhour[str(stop_number)]+= importance
+        except KeyError:
+            total_sum_rushhour[str(stop_number)] = importance
+
+
+kelly3 = []
+for i in train.bus_route_id:
+    try:
+        kelly3.append(total_sum_rushhour[str(i)])
+    except KeyError:
+        kelly3.append(0)
+train['bus_rushhour_importance'] = kelly3
+
+
+#test 에도 동일하게 만들어주기
+
+kelly_test = []
+for i in test.bus_route_id:
+    try:
+        kelly_test.append(total_sum[str(i)])
+    except KeyError:
+        kelly_test.append(0)
+test['bus_route_importance'] = kelly_test
+
+kelly2_test = []
+for i in test.bus_route_id:
+    try:
+        kelly2_test.append(total_sum_adult[str(i)])
+    except KeyError:
+        kelly2_test.append(0)
+test['bus_adult_importance'] = kelly2_test
+
+kelly3_test = []
+for i in test.bus_route_id:
+    try:
+        kelly3_test.append(total_sum_rushhour[str(i)])
+    except KeyError:
+        kelly3_test.append(0)
+test['bus_rushhour_importance'] = kelly3_test
+
+train.groupby('in_out')['18~20_ride'].sum()
+
+
+# 시내가 시외보다 퇴근시간 더 많이 이용
+
+train['in_out'][train['in_out']=="시내"] = 1
+train['in_out'][train['in_out']=="시외"] = 0
+test['in_out'][test['in_out']=="시내"] = 1
+test['in_out'][test['in_out']=="시외"] = 0
+
+
+features = ['in_out','latitude','longitude','6~7_ride', '7~8_ride', '8~9_ride',
+       '9~10_ride', '10~11_ride', '11~12_ride', '6~7_takeoff', '7~8_takeoff',
+       '8~9_takeoff', '9~10_takeoff', '10~11_takeoff', '11~12_takeoff','bus_route_importance', 'bus_adult_importance',
+       'bus_rushhour_importance','weekday_0', 'weekday_1', 'weekday_2', 'weekday_3', 'weekday_4',
+       'weekday_5', 'weekday_6']
+data = train.loc[:,features]
+label = train.loc[:,['18~20_ride']]
+test_data = test.loc[:,features]
+
+
+from sklearn.preprocessing import StandardScaler
+import xgboost as xgb
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import classification_report, confusion_matrix
+
+
+scalar = StandardScaler()
+sca_data = scalar.fit_transform(data)
+sca_test = scalar.transform(test_data)
+
+X_train,X_test,y_train,y_test = \
+train_test_split(sca_data, label.values, test_size=0.3, random_state=21)
+
+model_1 = RandomForestRegressor(max_depth=6,min_samples_split=2,
+                                random_state=0,n_estimators=100).fit(X_train, y_train)
+
+
+model_2 = xgb.XGBRegressor(max_depth=5,objective="reg:squarederror",
+                     gamma=0.01,random_state=0,
+                     n_estimators=1000).fit(X_train, y_train)
+
+print('랜덤포레스트 성적')
+print("학습데이터 모델 성능:",model_1.score(X_train,y_train))
+print("테스트데이터 모델 성능:",model_1.score(X_test,y_test))
+
+
+print('xgboost 성적')
+print("학습데이터 모델 성능:",model_2.score(X_train,y_train))
+print("테스트데이터 모델 성능:",model_2.score(X_test,y_test))
+
+
+pred= model_2.predict(sca_test)
+
+submission['18~20_ride']=pred
+
+
+submission.to_csv('../FinEng/files/submission_sample_fourth_trial.csv')

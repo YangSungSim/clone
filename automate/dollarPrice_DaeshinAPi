@@ -121,12 +121,9 @@ try:
         date_startpoint.AutoFill(ws.Range(date_startpoint,date_endpoint))
 
     startpoint1.AutoFill(ws.Range(startpoint1, endpoint1))
-    startpoint2.AutoFill(ws.Range(startpoint2, endpoint2))
+    startpoint2.AutoFill(ws.Range(startpoint2, endpoinst2))
     startpoint3.AutoFill(ws.Range(startpoint3, endpoint3))
 
 finally:
     xl_open.Save()
     xl.Quit()
-
-
-
