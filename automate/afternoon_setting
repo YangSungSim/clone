@@ -18,17 +18,17 @@ dlg = timings.wait_until_passes(10,0.5, ret_wind11)
 
 ID_dit = dlg.Edit1
 ID_dit.set_focus()
-ID_dit.type_keys('imanda')
+ID_dit.type_keys('******')
 time.sleep(1)
 
 pass_edit = dlg.Edit2
 pass_edit.set_focus()
-pass_edit.type_keys('tldrmf#67')
+pass_edit.type_keys('*********')
 time.sleep(1)
 
 cert_edit = dlg.Edit3
 cert_edit.set_focus()
-cert_edit.type_keys('vhtmfoq=679')
+cert_edit.type_keys('***********')
 
 pyautogui.click(x=1190,y=598)
 time.sleep(60)

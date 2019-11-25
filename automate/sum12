@@ -53,15 +53,15 @@ sum1_txt = open('/sum1.txt','r')
 sum2_txt = open('/sum2.txt','r')
 
 i = sum1_txt.readlines()
-lt = i[len(i)-1].split(',')[0]  
+lt = i[len(i)-1].split(',')[0]
 
 
 for i in range(len(sum1)):
-    if lt==sum1[i][0]:        
+    if lt==sum1[i][0]:
         k = i+1
 
 memo = []
-for i in range(k,len(sum1)):  
+for i in range(k,len(sum1)):
     memo.append(sum1[i])
 
 

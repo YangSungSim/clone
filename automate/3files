@@ -11,8 +11,8 @@ import easygui
 xl = win32com.client.Dispatch('excel.Application')
 xl.visible = True
 xl.DisplayAlerts = False
-wb = xl.Workbooks.Open('주소/원달러종가청산관리.xlsm')
-ws = wb.Worksheets('원달러종가청산')
+wb = xl.Workbooks.Open('주소/달러청산관리.xlsm')
+ws = wb.Worksheets('달러종가청산')
 
 
 def yesterday():
@@ -36,8 +36,8 @@ for i in range(600,nrows):
 yester_index = 600+rows.index(yesterday())
 
 
-xl.Application.Run('원달러종가청산관리.xlsm!Module1.종가청산관리')
-xl.Workbooks('원달러시세').Close(SaveChanges=1)
+xl.Application.Run('달러청산관리.xlsm!Module1.종가청산관리')
+xl.Workbooks('sheet1').Close(SaveChanges=1)
 time.sleep(2)
 
 ws.Cells(yester_index+1,1).Value = today
@@ -56,8 +56,6 @@ startpo.AutoFill(ws.Range(startpo,endpo))
 ws.Cells(yester_index+2,1).Select()
 
 xl.ActiveWorkBook.Save()
-easygui.msgbox("저장버튼을 누르세요")
-time.sleep(5)
 
 xl.Quit()
 

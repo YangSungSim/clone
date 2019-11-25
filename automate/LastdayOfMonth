@@ -206,4 +206,3 @@ shutil.copy(src,dst)
 
 #fin.
 xl.Quit()
-

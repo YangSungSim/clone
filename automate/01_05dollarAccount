@@ -17,7 +17,7 @@ src = ../원달러EXPORT/Account/'
 
 
 #파일 옮기기
-src2 = '../Account/'    
+src2 = '../Account/'
 dst = '../원달러EXPORT/Account/'
 
 for ff in os.listdir(src):
@@ -33,7 +33,7 @@ for i in glob.glob('주소/xlsx/*.xlsx'):
 try:
     xl = win32com.client.Dispatch('excel.Application')
     xl.visible = True
-    wb = xl.Workbooks.Open('주소/5. $원달러Account.xlsm')
+    wb = xl.Workbooks.Open('주소/5. $달러Account.xlsm')
     xl.DisplayAlerts = False
     ws = wb.Worksheets('Major')
     xl.Application.Run('ChangeXlsx')
@@ -45,7 +45,7 @@ finally:
 
 
 
-wb = xlrd.open_workbook('주소/0원달러선물정산.xlsm')
+wb = xlrd.open_workbook('주소/원달러선물정산.xlsm')
 sh = wb.sheet_by_index(2)
 sh2 = wb.sheet_by_index(3)
 
@@ -77,19 +77,19 @@ try:
     xl = win32com.client.Dispatch('excel.Application')
     xl.visible = True
     xl.DisplayAlerts = False
-    wb = xl.Workbooks.Open('주소/0원달러선물정산.xlsm')
-    ws = wb.Worksheets('정산')
-    ws2 = wb.Worksheets('로직모니터링')
+    wb = xl.Workbooks.Open('주소/원달러선물정산.xlsm')
+    ws = wb.Worksheets('sheet2')
+    ws2 = wb.Worksheets('sheet3')
 
     ws.Select()
     ws.Cells(today_cell,1).Select()
-    xl.Application.Run("0원달러선물정산.xlsm!Module1.원달러매매손익")
+    xl.Application.Run("원달러선물정산.xlsm!Module1.달러매손익")
     time.sleep(1)
 
-    
+
     ws2.Select()
     ws2.Cells(today_cell2,1).Select()
-    xl.Application.Run("0원달러선물정산.xlsm!Module2.원달러로직모니터링")
+    xl.Application.Run("원달러선물정산.xlsm!Module2.달러로직모니터링")
 
     ws.Select()
     ws.Cells(today_cell,1).Select()
@@ -105,24 +105,24 @@ finally:
 try:
     xl = win32com.client.Dispatch('excel.Application')
     xl.visible = True
-    wb = xl.Workbooks.Open('주소/0원달러선물정산.xlsm')
+    wb = xl.Workbooks.Open('주소/원달러선물정산.xlsm')
     xl.DisplayAlerts = False
-    ws = wb.Worksheets('정산')
-    ws2 = wb.Worksheets('로직모니터링')
+    ws = wb.Worksheets('sheet2')
+    ws2 = wb.Worksheets('sheet3')
 
 
 
-    
+
     ws.Select()
     ws.Cells(today_cell-1,13).AutoFill(ws.Range(ws.Cells(today_cell-1,13),ws.Cells(today_cell,13)))
 
-    
+
 
     for i in range(14,35):
         if ws.Cells(today_cell,i).Value is None:
             ws.Cells(today_cell,i).Value = "0"
 
-    
+
     ws2.Select()
     ws2.Cells(today_cell2,2).Value = ws2.Cells(today_cell2-1,2).Value -1
     ws.Select()
@@ -130,7 +130,7 @@ try:
         ws2.Select()
         ws2.Cells(today_cell2,2).Value = int(easygui.enterbox('새로운 잔존일수는?'))
 
-    
+
     ws2.Select()
     for i in range(6,24):
         if ws2.Cells(today_cell2,i).Value == "":
@@ -138,12 +138,12 @@ try:
 
     ws2.Cells(today_cell2+1,1).Select()
 
-    
+
     ws.Select()
     startpoint1 = ws.Range(ws.Cells(today_cell,36),ws.Cells(today_cell,44))
     endpoint1 = ws.Range(ws.Cells(today_cell+1, 36),ws.Cells(today_cell+1,44))
 
-    
+
     startpoint1.AutoFill(ws.Range(startpoint1,endpoint1))
 
     ws.Cells(today_cell+1,1).Select()
