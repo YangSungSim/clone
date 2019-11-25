@@ -1,0 +1,401 @@
+import pandas as pd 
+import numpy as np 
+import tensorflow
+from keras import callbacks
+from keras.models import Sequential
+from keras.layers import Dense, LSTM, Dropout
+from sklearn.preprocessing import MinMaxScaler
+import matplotlib.pyplot as plt
+
+
+middle_ongoing = pd.read_csv('./extra2/files/middle_ongoing.csv')
+tour_national =  pd.read_csv('./extra2/files/tour_national.csv')
+middle_ongoing.head()
+
+numpy_vr = middle_ongoing.values
+# csv가 대용량인 관계로 db를 만들어 필요한 데이터만 추출 시도
+import sqlite3
+
+conn = sqlite3.connect('funda.db')
+cursor = conn.cursor()
+
+
+cursor.execute('''
+create table if not exists funda (
+id integer primary key,
+store_id integer not null,
+card_company integer not null,
+transacted_date DATE,
+region char(15),
+type_of_business char(15),
+amount float,
+holiday integer not null,
+chung_sung integer not null
+);
+''')
+
+
+statement = '''insert into funda (id,store_id,card_company,transacted_date,region,type_of_business,\
+amount,holiday,chung_sung) Values (?,?,?,?,?,?,?,?,?)'''
+
+
+cursor.executemany(statement, numpy_vr)
+conn.commit()
+
+cursor.execute('''
+select store_id,type_of_business,card_company from funda               
+''')
+fr_list = cursor.fetchall()
+
+pd.options.display.max_columns = 40
+# 결측지를 KNeighborsClassifier 로 예측해서 집어넣자
+
+from itertools import groupby
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.preprocessing import LabelEncoder
+
+dataF_new_train = np.array(fr_list)[:,1:]
+def fill_na(dataF):
+    dataF = middle_ongoing
+    dataF_new = dataF.loc[:,['store_id','type_of_business','card_company']]
+    
+    dataF_new_train = dataF_new.loc[:,['type_of_business','card_company']]\
+    [type(dataF_new.type_of_business)==str]
+    
+    dataF_new_test = dataF_new.loc[:,['store_id','card_company']]\
+    [type(dataF_new.type_of_business.isnull)==int]
+    d = [(k,g) for k,g in zip(dataF_new_train.iloc[:,0],dataF_new_train.iloc[:,1])]
+    category = {}
+    for k,g in groupby(sorted(d),lambda x:x[0]):
+        listg = [x[1] for x in list(g)]
+        category[k] = list(set(listg))[:200]
+    
+    encoder = LabelEncoder()
+    label = encoder.fit_transform(category.keys().reshape(-1,1))
+    X_train = label.reshape(-1,1)
+    y_train = category.values()
+    
+    knn = KNeighborsClassifier(n_neighbors=5).fit(X_train,y_train)
+    
+    category2 = {}
+    d2 = [(k,g) for k,g in zip(dataF_new_test.iloc[:,0],dataF_new_test.iloc[:,1])]
+    for k,g in groupby(sorted(d2),lambda x:x[0]):
+        listg = [x[1] for x in list(g)]
+        category2[k] = list(set(listg))[:200]
+    pred = knn.predict(category2.values().reshape(-1,1))
+    for_label1 = {}
+    for_label2 = {}
+    for k,g in zip(category.keys(),label):
+        for_label1[k] = g
+    for k,g in zip(category2.keys(),pred):
+        for_label2[k] = g
+    return for_label1,for_label2
+
+
+for1,for2 = fill_na(middle_ongoing)
+    
+
+# 각 지역별 관광지 갯수를 3등분해서 상,중,하로 나누기    
+sang = list(tour_national.tour_number[tour_national.number_of_tour>5])
+zhong = list(tour_national.tour_number[tour_national.number_of_tour.isin([3,4])])
+ha = list(tour_national.tour_number[tour_national.number_of_tour<3])
+
+'''
+data = middle_ongoing.loc[:,['store_id','transacted_date','amount','card_company','holiday','chung_sung']]
+data.transacted_date = [str(i)[:7] for i in data.transacted_date]
+k = data.groupby(['store_id','transacted_date']).sum()
+store_id = [i[0] for i in k.index]
+date = [i[1] for i in k.index]
+amounts = k.values[:,0]
+card_company = k.values[:,1]
+holiday = k.values[:,2]
+chung_sung = k.values[:,3]
+
+modify = pd.DataFrame()
+modify['store_id'] = store_id
+modify['date']= date
+modify['amounts'] = amounts
+modify['card_company'] = card_company
+modify['holiday'] = holiday
+modify['chung_sung'] = chung_sung
+modify.to_csv('./extra2/files/funda_monthly.csv')
+
+data2 = middle_ongoing.loc[:,['store_id','region']]
+data2_vr = pd.pivot_table(data2, index=['store_id'], columns='transacted_date', values='region')
+data2_vr = data2.unstack(level=-1)
+data2.transacted_date = [str(i)[:7] for i in data.transacted_date]
+k = dict(list(data2.groupby(['store_id'])))
+region = []
+for i in k.keys():
+    region.append(list(set(k[i].iloc[:,-1]))[0])
+result = pd.DataFrame(region)
+result['store_id'] = k.keys()
+
+
+
+data3 = middle_ongoing.loc[:,['store_id','type_of_business']]
+data2_vr = pd.pivot_table(data2, index=['store_id'], columns='transacted_date', values='region')
+data2_vr = data2.unstack(level=-1)
+data2.transacted_date = [str(i)[:7] for i in data.transacted_date]
+k = dict(list(data3.groupby(['store_id'])))
+type_of_business = []
+for i in k.keys():
+    type_of_business.append(list(set(k[i].iloc[:,-1]))[0])
+result = pd.DataFrame(region)
+result['store_id'] = k.keys()
+result['type_of_business'] = type_of_business
+result.to_csv('./extra2/files/region_business.csv')
+'''
+funda_monthly = pd.read_csv('./extra2/files/funda_monthly.csv')
+pd.options.display.max_columns = 40
+#funda_monthly['region'] = [region_business.region[region_business.store_id==i].values[0] for i in funda_monthly.store_id]
+#funda_monthly['type_of_business'] = [region_business.type_of_business[region_business.store_id==i].values[0] for i in funda_monthly.store_id]
+# 지역별 평균 매출액
+sales_store = funda_monthly.loc[:,['store_id','amounts']]
+sales_store_1 = sales_store.groupby(['store_id']).mean()
+sales_store_1 = pd.DataFrame(sales_store_1)
+funda_monthly['average_sales'] = [sales_store_1.loc[i].values[0] for i in funda_monthly.store_id]
+chung_store = funda_monthly.loc[:,['store_id','chung_sung']]
+sales_store_1 = sales_store.groupby(['store_id']).sum()
+funda_monthly['sum_chung'] = [sales_store_1.loc[i].values[0] for i in funda_monthly.store_id]
+funda_monthly.drop(columns=['chung_sung'],inplace=True)
+funda_monthly = funda_monthly.iloc[:,2:]
+
+###############################
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.preprocessing import LabelEncoder
+encoder = LabelEncoder()
+
+fillnas = funda_monthly.loc[:,['card_company','region']]
+fillnas.dropna(how='any',inplace=True)
+fillnas_vr = dict(list(fillnas.groupby('region')['card_company']))
+fillnas_dict = {}
+for i in fillnas_vr.keys():
+    fillnas_dict[i] = fillnas_vr[i][:12]
+k = encoder.fit_transform(list(fillnas_dict.keys()))
+
+X_train = np.array([i for i in fillnas_dict.values()])
+y_train = k
+
+model = KNeighborsClassifier(n_neighbors=5).fit(X_train,y_train)
+
+
+fillnas_nope = funda_monthly.loc[:,['store_id','card_company']][funda_monthly.region.isnull()==True]
+fillnas_vr_nope = dict(list(fillnas_nope.groupby('store_id')['card_company']))
+fillnas_dict_nope = {}
+for i in fillnas_vr_nope.keys():
+    fillnas_dict_nope[str(i)] = fillnas_vr_nope[i][:12].values
+    
+X_text = np.array([i for i in fillnas_dict_nope.values()])
+pred = model.predict(X_text)
+
+hangeul = {} 
+for i in range(len(fillnas_dict.keys())):
+    hangeul[list(fillnas_dict.keys())[i]] = y_train[i]
+    
+stor = {}
+
+for i in range(len(fillnas_dict_nope.keys())):
+    stor[list(fillnas_dict_nope.keys())[i]] = pred[i]
+funda_monthly.region[funda_monthly.region.isnull()==False] = [hangeul[i] for i in funda_monthly.region[funda_monthly.region.isnull()==False]]
+funda_monthly.region[funda_monthly.region.isnull()==True] = [stor[str(i)] for  i in funda_monthly.store_id[funda_monthly.region.isnull()==True]]
+
+###############################
+funda_monthly.number_of_tour[funda_monthly.number_of_tour.isnull()==True] = \
+[list(tour_national.number_of_tour[tour_national.jiyeok==[name for name,age in hangeul.items() if age == i][0]].values)[0] for i in funda_monthly.region[funda_monthly.number_of_tour.isnull()==True]]
+###################################
+
+fillnas = funda_monthly.loc[:,['card_company','type_of_business']]
+fillnas.dropna(how='any',inplace=True)
+fillnas_vr = dict(list(fillnas.groupby('type_of_business')['card_company']))
+fillnas_dict = {}
+for i in fillnas_vr.keys():
+    fillnas_dict[i] = fillnas_vr[i][:3]
+k = encoder.fit_transform(list(fillnas_dict.keys()))
+
+
+
+X_train = np.array([i for i in fillnas_dict.values()])
+y_train = k
+
+model = KNeighborsClassifier(n_neighbors=5).fit(X_train,y_train)
+
+
+fillnas_nope = funda_monthly.loc[:,['store_id','card_company']][funda_monthly.type_of_business.isnull()==True]
+fillnas_vr_nope = dict(list(fillnas_nope.groupby('store_id')['card_company']))
+fillnas_dict_nope = {}
+for i in fillnas_vr_nope.keys():
+    fillnas_dict_nope[str(i)] = fillnas_vr_nope[i][:3].values
+    
+X_text = np.array([i for i in fillnas_dict_nope.values()])
+pred = model.predict(X_text)
+
+hangeul = {} 
+for i in range(len(fillnas_dict.keys())):
+    hangeul[list(fillnas_dict.keys())[i]] = y_train[i]
+    
+stor = {}
+
+for i in range(len(fillnas_dict_nope.keys())):
+    stor[list(fillnas_dict_nope.keys())[i]] = pred[i]
+funda_monthly.type_of_business[funda_monthly.type_of_business.isnull()==False] = [hangeul[i] for i in funda_monthly.type_of_business[funda_monthly.type_of_business.isnull()==False]]
+funda_monthly.type_of_business[funda_monthly.type_of_business.isnull()==True] = [stor[str(i)] for  i in funda_monthly.store_id[funda_monthly.type_of_business.isnull()==True]]
+
+##########################################################
+import seaborn as sns
+data = funda_monthly.loc[:,['holiday','region','type_of_business','number_of_tour','average_sales','sum_chung']].values
+train = funda_monthly.loc[:,['amounts']].values
+
+from sklearn.ensemble import RandomForestRegressor
+rf = RandomForestRegressor(n_estimators=500,criterion='mse', random_state=777)
+
+rf.fit(data, train)
+
+pred2 = rf.predict(test_data.values)
+pred3 = rf.predict(test_data2.values)
+
+final_sum = pred2*2+pred3
+submission = pd.read_csv('./extra2/files/submission.csv')
+submission.amount = final_sum
+submission.isnull().sum(0)
+submission.to_csv('./extra2/files/submission_funda.csv')
+
+test_data = pd.DataFrame(funda_monthly.loc[:,['store_id','region','type_of_business','number_of_tour','average_sales','sum_chung']].groupby('store_id').max())
+holiday_list = ['20190301','20190505','20190506','20190512']
+test_data['holiday'] = 11
+test_data = test_data.loc[:,['holiday','region','type_of_business','number_of_tour','average_sales','sum_chung']]
+test_data2 = test_data.copy()
+test_data2['holiday'] = 8
+
+import calendar
+k= [3,4,5]
+result = []
+for i in k:
+    (kk,jjj) = calendar.monthrange(2019,i)
+    holiday = 0
+    for j in range(1,jjj+1):
+        weekday = calendar.weekday(2019,i,j)
+        if weekday in [5,6]:
+            holiday +=1
+    result.append(holiday)
+result = [11,8,11]  #3,4,5월 총 휴일 갯수
+
+two_six = {}
+kk2 = [2016,2017,2018,2019]
+for i in kk2:
+    if i == 2016:
+        for j in range(6,13):
+            (kk,jjj) = calendar.monthrange(2019,j)
+            holiday = 0
+            for k in range(1,jjj+1):
+                weekday = calendar.weekday(2019,j,k)
+                if weekday in [5,6]:
+                    holiday +=1
+            if len(str(j))==1:
+                two_six[str(i)+'-'+'0'+str(j)] = holiday
+            else:
+                two_six[str(i)+'-'+str(j)] = holiday
+        
+    elif i in [2017,2018]:
+        for j in range(1,13):
+            (kk,jjj) = calendar.monthrange(2019,j)
+            holiday = 0
+            for k in range(1,jjj+1):
+                weekday = calendar.weekday(2019,j,k)
+                if weekday in [5,6]:
+                    holiday +=1
+            if len(str(j))==1:
+                two_six[str(i)+'-'+'0'+str(j)] = holiday
+            else:
+                two_six[str(i)+'-'+str(j)] = holiday
+    else:
+        for j in range(1,3):
+            (kk,jjj) = calendar.monthrange(2019,j)
+            holiday = 0
+            for k in range(1,jjj+1):
+                weekday = calendar.weekday(2019,j,k)
+                if weekday in [5,6]:
+                    holiday +=1
+            if len(str(j))==1:
+                two_six[str(i)+'-'+'0'+str(j)] = holiday
+            else:
+                two_six[str(i)+'-'+str(j)] = holiday
+
+national_holiday = pd.read_csv('./extra2/files/national_holiday.csv')
+national_holiday = national_holiday.iloc[:,1]
+national_holiday2 = [str(i)[:4]+'-'+str(i)[4:6] for i in national_holiday.values]
+national_holiday2.count('201912')
+for i in national_holiday2:
+    if i in two_six.keys():
+        two_six[i]+=1
+        
+for i in funda_monthly.date:
+    funda_monthly.holiday[funda_monthly.date==i] = two_six[i]
+    
+
+
+def create_dataset(signal_data, look_back=1):
+    dataX, dataY = [], []
+    for i in range(len(signal_data)-look_back):
+        dataX.append(signal_data[i:(i+look_back)])
+        dataY.append(signal_data[i + look_back])
+    return np.array(dataX), np.array(dataY)
+
+
+model = Sequential()
+for i in range(2):
+    model.add(LSTM(32,batch_input_shape=(30,3,1),stateful=True,return_sequences=True))
+    model.add(Dropout(0.3))
+model.add(LSTM(32,batch_input_shape=(30,3,1),stateful=True))
+model.add(Dropout(0.3))
+model.add(Dense(1))
+
+model.compile(loss='mean_squared_error',optimizer='adam')
+
+
+
+store_amount = []
+for i in set(modify.date):
+    dates = []
+    k = modify.loc[:,['date','amounts']][modify.date==i].amounts
+    for ii in k:
+        dates.append(ii)
+    store_amount.append(np.array(dates))
+train = store_amount
+  
+look_back=3
+dataX, dataY = [], []
+
+for i in range(len(train)-look_back):
+    dataX.append(train[i:(i+look_back)])
+    dataY.append(train[i + look_back])
+
+x_train,y_train= np.array(dataX), np.array(dataY)
+        
+
+x_train = np.reshape(x_train, (x_train.shape[0],x_train.shape[1],1))
+
+for i in range(50):
+    model.fit(x_train,y_train,epochs=1,batch_size=1,shuffle=False)
+    model.reset_states()
+        
+trainScore = model.evaluate(x_train, y_train, batch_size=1, verbose=0)
+model.reset_states()
+print('Train Score: ', trainScore)
+xhat = np.array([[store_amount.values[-1]]])
+
+predictions = np.zeros((3,1))
+for i in range(3):
+    prediction = model.predict(np.array([xhat]), batch_size=1)
+    predictions[i] = prediction
+    xhat = np.vstack([xhat[1:],prediction])
+
+
+
+
+
+
+
+
+
+

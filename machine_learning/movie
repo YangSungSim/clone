@@ -1,0 +1,174 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+import datetime
+import seaborn as sns
+
+movie_train = pd.read_csv('../Documents/movies_train.csv')
+movie_test = pd.read_csv('../Documents/movies_test.csv')
+
+movie_train.head()
+movie_train.info
+movie_train.describe
+
+
+movie_train.isnull().sum(0)
+#결측지 채우기 미션을 알아보려고 했는데 ..
+movie_trainc = movie_train.copy()
+movie_trainc['release_time'] = pd.to_datetime(movie_trainc.release_time)
+movie_trainc['year'] = movie_trainc.release_time.dt.year
+movie_trainc['month'] = movie_trainc.release_time.dt.month
+movie_trainc['weekday'] = movie_trainc.release_time.dt.dayofweek
+pd.options.display.max_columns = 40
+movie_trainc.head()
+sns.heatmap(movie_trainc.corr())
+movie_trainc.columns
+movie_trainc.drop(columns = ['title'],inplace=True)
+movie_trainc.drop(columns = ['dir_prev_bfnum'],inplace=True)
+movie_trainc.drop(columns = ['release_time'],inplace=True)
+
+
+
+movie_test['release_time'] = pd.to_datetime(movie_test.release_time)
+movie_test['year'] = movie_test.release_time.dt.year
+movie_test['month'] = movie_test.release_time.dt.month
+movie_test['weekday'] = movie_test.release_time.dt.dayofweek
+
+movie_test.drop(columns = ['title'],inplace=True)
+movie_test.drop(columns = ['dir_prev_bfnum'],inplace=True)
+movie_test.drop(columns = ['release_time'],inplace=True)
+
+
+
+
+
+#one-hot-encoding
+#first. distributor
+k = {i:k for i,k in zip(movie_trainc.distributor.value_counts().index,movie_trainc.distributor.value_counts())}
+print(k.values())
+print(k.keys())
+
+movie_trainc.distributor = [k[i] for i in movie_trainc.distributor]
+
+
+k = {i:k for i,k in zip(movie_test.distributor.value_counts().index,movie_test.distributor.value_counts())}
+print(k.values())
+print(k.keys())
+
+movie_test.distributor = [k[i] for i in movie_test.distributor]
+
+
+#second. genre
+movie_trainc.genre.value_counts()
+#드라마,멜로/로맨스 ,뮤지컬  = 1
+#코미디,애니메이션   =2
+#공포,미스터리,서스펜스,다큐멘터리  =3
+#액션,느와르,SF  = 4
+one = ['드라마','멜로/로맨스','뮤지컬']
+two = ['코미디','애니메이션']
+three = ['공포','미스터리','서스펜스','다큐멘터리']
+four = ['액션','느와르','SF']
+
+movie_trainc.genre[movie_trainc['genre'].isin(one)] = 1
+movie_trainc.genre[movie_trainc['genre'].isin(two)] = 2
+movie_trainc.genre[movie_trainc['genre'].isin(three)] = 3
+movie_trainc.genre[movie_trainc['genre'].isin(four)] = 4
+
+
+
+movie_test.genre[movie_test['genre'].isin(one)] = 1
+movie_test.genre[movie_test['genre'].isin(two)] = 2
+movie_test.genre[movie_test['genre'].isin(three)] = 3
+movie_test.genre[movie_test['genre'].isin(four)] = 4
+
+
+
+
+#third. screening_rat director
+movie_trainc.screening_rat.value_counts()
+# 청소년 관람불가 = 1
+# 15세 관람가 = 2
+# 12세 관람가 = 3
+# 전체 관람가= 4
+
+
+movie_trainc.screening_rat[movie_trainc['screening_rat']=='청소년 관람불가'] = 1
+movie_trainc.screening_rat[movie_trainc['screening_rat']=='15세 관람가'] = 2
+movie_trainc.screening_rat[movie_trainc['screening_rat']=='12세 관람가'] = 3
+movie_trainc.screening_rat[movie_trainc['screening_rat']=='전체 관람가'] = 4
+
+
+
+movie_test.screening_rat[movie_test['screening_rat']=='청소년 관람불가'] = 1
+movie_test.screening_rat[movie_test['screening_rat']=='15세 관람가'] = 2
+movie_test.screening_rat[movie_test['screening_rat']=='12세 관람가'] = 3
+movie_test.screening_rat[movie_test['screening_rat']=='전체 관람가'] = 4
+
+
+#fourth. director
+#{1,2,3,4,7}
+#set([i for i in movie_trainc.director.value_counts()])
+k3 = {i:k for i,k in zip( movie_trainc.director.value_counts().index, movie_trainc.director.value_counts())}
+movie_trainc.director = [k3[i] for i in movie_trainc.director]
+
+
+k3_1 = {i:k for i,k in zip( movie_test.director.value_counts().index, movie_test.director.value_counts())}
+movie_test.director = [k3_1[i] for i in movie_test.director]
+
+
+# 전처리 종료
+
+from sklearn.preprocessing import StandardScaler
+movie_trainc.describe()
+movie_trainc.corr()
+
+#학습이랑 정답 데이너 나누기
+data_columns = [i for i in movie_trainc.columns if i != 'box_off_num']
+data = movie_trainc.loc[:,data_columns]
+target = movie_trainc.loc[:,'box_off_num'].values
+
+
+
+#데이터 정규화 시키기
+scalar = StandardScaler()
+sca_data = scalar.fit_transform(data)
+
+sca_test = scalar.transform(movie_test)
+
+
+
+#학습과 검증데이터로 나누기
+X_train,X_test,y_train,y_test = train_test_split(sca_data,
+                                                 target,
+                                                 test_size=0.1,
+                                                 random_state=1)
+#모델 만들기
+#xgboost 600개 이하이므로 단순히 linear_model을 써봐도 될듯
+from sklearn.linear_model import LinearRegression
+import xgboost
+from xgboost import XGBRegressor
+
+model1 = xgboost.XGBRegressor(max_depth=6,learning_rate=0.01,
+                     objective="reg:squarederror",
+                     gamma=0.01,random_state=0,
+                     n_estimators=5000)
+
+model1.fit(X_train,y_train)
+
+print("학습데이터 모델 성능:",model1.score(X_train,y_train))
+print("테스트데이터 모델 성능:",model1.score(X_test,y_test))
+data.columns
+model1.feature_importances_
+
+featrues = {i:k for i,k in zip(data.columns,model1.feature_importances_)}
+sorted(featrues)
+
+answer = model1.predict(sca_test)
+
+movie_test_ori = pd.read_csv('C:/Users/FOS_08/Documents/movies_test.csv')
+final = pd.DataFrame(movie_test_ori['title'])
+final['box_off_num'] = [int(i) for i in answer]
+final = final.set_index('title')
+final.to_csv('../ml/extra2/files/movie_submission.csv',encoding='utf-8')
+
