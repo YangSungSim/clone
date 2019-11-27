@@ -1,0 +1,63 @@
+#전일 고가 전일 저가 빼서 가상 화폐 변동폭 구하기
+import pybithumb
+import time
+import datetime
+
+#금일 매수 목표가
+def cal_target():
+    df = pybithumb.get_ohlcv("BTC")
+    yesterday = df.iloc[-2]
+
+    today_open = yesterday['close']
+    yesterday_high = yesterday['high']
+    yesterday_low = yesterday['low']
+    target = today_open + (yesterday_high - yesterday_low)* 0.5
+    return target
+
+now = datetime.datetime.now()
+def make_times(now):
+    tomorrow = now + datetime.timedelta(1)
+    midnight = datetime.datetime(year = tomorrow.year,
+                                 month = tomorrow.month,
+                                 day = tomorrow.day,
+                                 hour = 0,
+                                 minute =0,
+                                 second = 0)
+    midnight_after_10secs = midnight + datetime.timedelta(seconds=10)
+    return (midnight, midnight_after_10secs)
+
+def try_buy(now,price,target):
+    try:
+        krw = pybithumb.get_balance("btc")[2]
+        orderbook = pybithumb.get_orderbook("btc")
+        asks = orderbook['asks']
+        sell_price = asks[0]['price']
+        unit = krw/float(sell_price)
+
+        if price > target:
+            print(now,"매수조건",price,target)
+            pybithumb.buy_market_order("BTC",unit)
+        else:
+            print(now,"매수조건아님")
+    except:
+        pass
+
+def try_sell(now):
+    try:
+        unit = pybithumb.get_balance("BTC")[0]
+        pybithumb.sell_market_order("BTC",unit)
+    except:
+        print("try sell order")
+while True:
+    now = datetime.datetime.now()
+    if time1 < now < time2:
+        target = cal_target()
+        time1,time2 = make_times(now)
+        time.sleep(10)
+
+    price = pybithumb.get_current_price('BTC')
+    if price is not None:
+        try_buy(now,price,target)
+
+    time.sleep(0.2)
+
