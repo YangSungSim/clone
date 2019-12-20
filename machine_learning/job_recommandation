@@ -1,0 +1,176 @@
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split, KFold
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+from xgboost import XGBClassifier
+from sklearn.model_selection import GridSearchCV
+
+train = pd.read_csv('D:/spyder_folder/files/train_job/train.csv')
+job_companies = pd.read_csv('D:/spyder_folder/files/train_job/job_companies.csv')
+job_tags = pd.read_csv('D:/spyder_folder/files/train_job/job_tags.csv')
+tags = pd.read_csv('D:/spyder_folder/files/train_job/tags.csv')
+user_tags = pd.read_csv('D:/spyder_folder/files/train_job/user_tags.csv')
+test = pd.read_csv('D:/spyder_folder/files/test_job.csv')
+
+'''
+데이터 확인
+job_tags. tag 아이디 246개 -user_tags. tag 아이디 345개
+
+job_companies.companyID는 887개
+
+tag 아이디 246개
+
+job_companies의 null 갯수 : 90개
+
+job_companies의 companySize 분류
+
+11-50 : 260
+51-100 : 142
+1-10 : 100
+101-200 : 60
+201-500 : 56
+1000 이상 : 13
+501-1000 : 12
+
+
+step1: 비식별화 된 코드로는 모델을 돌릴 수 없기 때문에 숫자로 변환해야 한다.
+train.csv 의 userID와 jobID 열을 참조로 하여 tagID 열을 각각 추가해준다.
+
+tags 표 안에 tagID를 전부 숫자로 변환
+
+job_tags 표 안에 tagID를 tags.tagID 를 참고로 하여 숫자로 변환
+
+마찬가지로 user_tagsID 도 바꾸기
+
+train 표 에 userID와 jobID 열을 참고로 숫자로 변환된 tagID를 전부 숫자 리스트로 연결 시켜준다.
+
+user_tagID, 와 jobID_tagID 의 리스트 길이를 태그가 많을 수록 구직, 구인 의사정도를 반영한다고 봤기 때문에 feature에 추가.
+
+user_tagID 와 jobID_tagID 열 내 숫자 리스트 내 숫자가 겹치는 갯수정보를 포함한 열 추가
+'''
+
+tags['tag_number'] = [i for i in range(len(tags.tagID))]
+job_tags['tag_number'] = [int(tags.tag_number[tags.tagID==i]) for i in job_tags.tagID]
+user_tags['tag_number'] = [int(tags.tag_number[tags.tagID==i]) for i in user_tags.tagID]
+
+train['user_tagID'] = [user_tags.tag_number[user_tags.userID==i].values for i in train.userID]
+train['jobID_tagID'] = [job_tags.tag_number[job_tags.jobID==i].values for i in train.jobID]
+train['user_tag_len'] = train.user_tagID.apply(len)
+train['job_tag_len'] = train.jobID_tagID.apply(len)
+
+k = train.user_tagID
+kk = train.jobID_tagID
+train['similarity'] = [len(set(k[i]))- (len(set(k[i])-set(kk[i]))) for i in range(len(train))]
+train['similarity'] = train['similarity'].apply(int)
+
+'''
+step2: 회사 정보를 train.csv에 열로 추가하기
+job_companies의 companyID 열을 숫자로 치환하여 train.csv 열에 추가시키기
+회사규모사 200인 이상인 회사는 안정적인 회사로 판단하여 지원할 의사가 높을 것이라고 판단하여 stable_com 에 0과 1로 이루어진 열 추가
+'''
+
+job_companies['company_number'] = [i for i in range(len(job_companies.companyID))]
+
+train['company'] = [int(job_companies.company_number[job_companies.jobID==i]) for i in train.jobID]
+stable = ['1000 이상','501-1000','201-500']
+train['stable_com'] = 0
+
+initial = [str(job_companies.companySize[job_companies.company_number == i].values[0]) for i in train.company]
+second = []
+for i in initial:
+    if i in stable:
+        second.append(1)
+    else:
+        second.append(0)
+
+train['stable_com'] = second
+
+'''
+step3: 학습 모델 나누기
+제외할 열: ['userID', 'jobID','user_tagID', 'jobID_tagID','company']
+포함할 열: ['user_tag_len', 'job_tag_len', 'similarity', 'stable_com']
+라벨 칼럼: ['applied']
+'''
+
+data = train.loc[:,['user_tag_len', 'job_tag_len', 'similarity', 'stable_com']]
+label = train.applied
+
+X_train,X_test,y_train,y_test = train_test_split(data.values,label.values,\
+                                                 test_size=0.2,
+                                                 random_state=1)
+
+
+ test['user_tagID'] = [user_tags.tag_number[user_tags.userID==i].values for i in test.userID]
+ test['jobID_tagID'] = [job_tags.tag_number[job_tags.jobID==i].values for i in test.jobID]
+ test['user_tag_len'] = test.user_tagID.apply(len)
+ test['job_tag_len'] = test.jobID_tagID.apply(len)
+
+ test['company'] = [int(job_companies.company_number[job_companies.jobID==i]) for i in test.jobID]
+
+
+ kt = test.user_tagID
+ kkt = test.jobID_tagID
+ test['similarity'] = [len(set(kt[i]))- (len(set(kt[i])-set(kkt[i]))) for i in range(len(test))]
+ test['similarity'] = test['similarity'].apply(int)
+
+ test['stable_com'] = 0
+
+ initialt = [str(job_companies.companySize[job_companies.company_number == i].values[0]) for i in test.company]
+ secondt = []
+ for i in initialt:
+     if i in stable:
+         secondt.append(1)
+     else:
+         secondt.append(0)
+
+ test['stable_com'] = secondt
+
+ test_values = test.loc[:,['user_tag_len', 'job_tag_len', 'similarity', 'stable_com']]
+
+
+ param_grid = {'learning_rate': [0.001, 0.01, 0.1],
+               'objective': ['binary:logistic'],
+               'max_depth': [4,6,8]}
+
+ kfold = KFold(n_splits=5, shuffle=True)
+
+ grid_search = GridSearchCV(
+         XGBClassifier(), param_grid, cv=kfold, return_train_score=True, iid=True)
+
+ grid_search.fit(X_train, y_train)
+
+ param_grid2 = {'max_depth': [4,6,8],
+               'n_estimators': [100,500,1000],
+               'random_state': [0]
+         }
+
+
+ grid_search2 = GridSearchCV(
+         RandomForestClassifier(),param_grid2, cv=kfold, return_train_score=True, iid=True)
+
+
+ grid_search2.fit(X_train, y_train)
+
+
+ print("XGBClassifier테스트 세트 점수: {:.2f}".format(grid_search.score(X_test, y_test)))
+
+ print("XGBClassifier최적 매개변수: {}".format(grid_search.best_params_))
+
+
+ print("RandomForestClassifier테스트 세트 점수: {:.2f}".format(grid_search2.score(X_test, y_test)))
+
+ print("RandomForestClassifier최적 매개변수: {}".format(grid_search2.best_params_))
+
+
+'''
+XGBClassifier테스트 세트 점수: 0.87
+XGBClassifier최적 매개변수: {'objective': 'binary:logistic', 'max_depth': 4, 'learning_rate': 0.1}
+RandomForestClassifier테스트 세트 점수: 0.87
+RandomForestClassifier최적 매개변수: {'random_state': 0, 'max_depth': 4, 'n_estimators': 500}
+'''
+
+answer3 = grid_search2.predict(test_values.values)
+final3 = pd.DataFrame()
+final3['applied'] = answer3
+final3.to_csv('D:/spyder_folder/files/train_job/final_three.csv')

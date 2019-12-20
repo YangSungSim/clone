@@ -1,0 +1,152 @@
+import numpy as np
+import glob
+import os
+from keras.preprocessing import image
+from sklearn.preprocessing import OneHotEncoder
+import tensorflow as tf
+import pandas as pd
+import keras
+from keras.models import Sequential
+from keras.layers import Conv2D
+from keras.layers import MaxPooling2D
+from keras.layers import Activation, Dropout,Flatten, Dense
+from keras.callbacks import ModelCheckpoint
+from keras.layers.normalization import BatchNormalization
+
+'''
+이미지 데이터를 numpy array로 변환 해주는 image.img_to_array 함수 이용
+train_input 리스트에 8000개의 사진을 array로 변환한 리스트들을 저장
+8000개의 리스트들을 train(5850)과 test(2000) 개로 나누어서
+서로 다른 numpy array 로 저장(np.save) 시키기
+'''
+data_list = glob.glob('C:/Users/FOS_08/FinEng/files/image_file/faces_images/*.png')
+train_input = []
+for i in range(len(data_list)):
+    img = image.load_img(data_list[i])
+    img_tensor = image.img_to_array(img)
+    img_tensor /= 255.
+    train_input.append(img_tensor)
+
+
+all_filename = os.listdir('C:/Users/FOS_08/FinEng/files/image_file/faces_images/')[1:]
+
+train_csv = pd.read_csv('C:/Users/FOS_08/FinEng/files/image_file/train_vision.csv')
+test_csv = pd.read_csv('C:/Users/FOS_08/FinEng/files/image_file/test_vision.csv')
+train_filename = train_csv.iloc[:,0]
+test_filename = test_csv.iloc[:,0]
+
+train_index = [all_filename.index(i) for i in train_filename]
+test_index = [all_filename.index(i) for i in test_filename]
+
+# label_data 를 one_hot_encoded 시켜야 함.
+ohe = pd.get_dummies(train_csv,sparse=True)
+
+train_labels = ohe.values
+np.save("train_label.npy",train_labels)
+
+train_data = all_inputs[train_index,:]
+test_data = all_inputs[test_index,:]
+
+np.save("train_data.npy",train_data)
+np.save("test_data.npy",test_data)
+
+train_data= np.load("train_data.npy")
+test_data=np.load("test_data.npy")
+train_label = np.load("train_label.npy")
+
+'''
+keras 모델 작성
+네 개의 레이어를 쌓아올려서 데이터 형태가 (128,128,3) 인 input_data를 1D 텐서로 풀어 주어야 한다.
+
+이미지 -> 16개 Con2D -> maxpooling -> dropout -> 32개 Conv2D -> Maxpooling -> dropout
+
+64개 Conv2D -> maxpooling -> dropout -> 128개 Conv2D -> Flatten()*1차원 텐서로 변환
+
+dropout(0.2) 후 마지막 6개 분류로 나누기 위해 dense(6,에다가 다중 분류이기 때문에
+
+'softmax' 로 마무리)
+'''
+
+model = Sequential()
+model.add(Conv2D(16, (3, 3), padding='same', use_bias=False, input_shape=(128, 128, 3)))
+model.add(BatchNormalization(axis=3,scale=False))
+model.add(Activation("relu"))
+model.add(MaxPooling2D(pool_size=(4,4),strides=(4,4),padding='same'))
+model.add(Dropout(0.2))
+
+model.add(Conv2D(32,(3,3),padding='same',use_bias=False))
+model.add(BatchNormalization(axis=3,scale=False))
+model.add(Activation("relu"))
+model.add(MaxPooling2D(pool_size=(4,4),strides=(4,4),padding='same'))
+model.add(Dropout(0.2))
+
+model.add(Conv2D(64,(3,3),padding='same',use_bias=False))
+model.add(BatchNormalization(axis=3,scale=False))
+model.add(Activation("relu"))
+model.add(MaxPooling2D(pool_size=(4,4),strides=(4,4),padding='same'))
+model.add(Dropout(0.2))
+
+model.add(Conv2D(128,(3,3),padding='same',use_bias=False))
+model.add(BatchNormalization(axis=3,scale=False))
+model.add(Activation("relu"))
+model.add(Flatten())
+model.add(Dropout(0.2))
+
+model.add(Dense(512,activation='relu'))
+model.add(Dense(6,activation='softmax'))
+model.summary()
+
+model.compile(optimizer='adam',loss='categorical_crossentropy',metrics = ['accuracy'])
+
+'''
+batch_size = 10으로 설정하였고 , 평가데이터는 train_data의 앞 10 개 행을 지정 하였다.
+정확도가 50% 근처에서 맴도는 데 데이터 셋이 부족해서 imageDataGenerator 로 더 생성해야 할 것 같다.
+하지만 컴퓨터 메모리가 4g 밖에 안되서 정확도 50% 정도로 마무리
+개선해야 할 점: 인터넷에서 케라스 머신러닝 모델을 구축하고 테스트 할 수 있는 사이트를 이용해야 겠다
+'''
+model.fit(train_data,train_label,batch_size=10,validation_data=[train_data[:10],train_label[:10]])
+
+pred = model.predict(test_data)
+
+answer = np.argmax(pred,axis=1)
+
+
+final['label']=answer+1
+
+final.to_csv('C:/Users/FOS_08/FinEng/files/image_file/final_submission.csv')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+model.add(Conv2D(64,(3,3),padding='same',use_bias=False))
+model.add(BatchNormalization(axis=3,scale=False))
+model.add(Activation("relu"))
+model.add(MaxPooling2D(pool_size=(4,4),strides=(4,4),padding='same'))
+model.add(Dropout(0.2))
+
+model.add(Conv2D(128,(3,3),padding='same',use_bias=False))
+model.add(BatchNormalization(axis=3,scale=False))
+model.add(Activation("relu"))
+model.add(Flatten())
+model.add(Dropout(0.2))
+
+model.add(Dense(512,activation='relu'))
+model.add(Dense(6,activation='softmax'))
+model.summary()

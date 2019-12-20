@@ -1,0 +1,107 @@
+import sklearn
+import pandas as pd
+import numpy as np
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.model_selection import train_test_split
+
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import roc_auc_score
+
+from konlpy.tag import Okt
+import random
+from collections import Counter
+
+############################과도 구간###########################
+
+train = pd.read_csv('C:/Users/FOS_08/FinEng/files/filedown/train.csv')
+public_test = pd.read_csv('C:/Users/FOS_08/FinEng/files/filedown/public_test.csv')
+
+random.seed(1217)
+train_nsm_list = list(train[train['smishing']!=1].index)
+train_nsmishing = random.sample(train_nsm_list,11750)
+
+random.seed(1217)
+train_sm_list = list(train[train['smishing']==1].index)
+train_smishing = random.sample(train_sm_list,800) #0.066과 제일 비슷하게 나올 수 있도록 train_data_undersampling
+
+train_xx = train.iloc[train_smishing+train_nsmishing,:].reset_index(drop=True)
+
+train_yy = pd.DataFrame(train['smishing'],columns=['smishing'])
+train_yyy = train_yy.iloc[train_smishing+train_nsmishing,:].reset_index(drop=True)
+
+public_test['smishing'] = 2
+# train data와 동일한 형태 생성을 위해 임의의 숫자를 추가 # 이후 스미싱 여부 확률값으로 덮어쓰기
+test_xx = pd.DataFrame(public_test['text'])
+test_yyy = pd.DataFrame(public_test['smishing'])
+
+tokenizer = Okt()
+
+train_doc = [ ( tokenizer.pos(x), y) for x,y in zip( train_xx['text'], train_yyy['smishing'])]
+test_doc = [ ( tokenizer.pos(x),y ) for x,y in zip( test_xx['text'], test_yyy['smishing'])]
+
+stopwords = ['XXX', '.', '을', '를', '이', '가', '-', '(', ')', ':', '!', '?', ')-', '.-', 'ㅡ', 'XXXXXX', '..', '.(', '은', '는']
+
+def get_couple(_words):
+    global stopwords #밖에 있는 stopword를 함수 안으로 끌어들어오기?
+    _words = [x for x in _words if x[0] not in stopwords]
+    l = len(_words)
+    for i in range(l-1):
+        yield _words[i][0], _words[i+1][0]
+
+X_train, Y_train = [],[]
+for lwords in train_doc:
+    Y_train.append(lwords[1])
+
+    temp = []
+    for x,y in get_couple(lwords[0]):
+        temp.append("{}.{}".format(x,y))
+
+    X_train.append(" ".join(temp))
+
+X_test = []
+for lwords in test_doc:
+
+    temp = []
+    for x,y in get_couple(lwords[0]):
+        temp.append("{}.{}".format(x,y))
+    X_test.append(" ".join(temp))
+
+
+'''
+메모리를 많이 잡아먹어서 따로 빼놓기
+'''
+
+X_trains = pd.DataFrame(X_train)
+X_tests = pd.DataFrame(X_test)
+y_trains = pd.DataFrame(Y_train)
+
+X_trains.to_csv('D:/spyder_folder/files/X_trains.csv')
+X_tests.to_csv('D:/spyder_folder/files/X_tests.csv')
+y_trains.to_csv('D:/spyder_folder/files/y_trains.csv')
+
+######################정지 및 다시시작############################
+X_trains = pd.read_csv('D:/spyder_folder/files/X_trains.csv')
+X_tests = pd.read_csv('D:/spyder_folder/files/X_tests.csv')
+y_trains = pd.read_csv('D:/spyder_folder/files/y_trains.csv')
+
+X_tests.dropna(how='any',inplace=True)
+
+k = [i for i in X_trains.iloc[:,-1].values]
+kk = [i for i in X_tests.iloc[:,-1].values]
+kkk = [i for i in y_trains.iloc[:,-1].values]
+
+v = CountVectorizer(max_features=10000,min_df=1)
+v.fit(k)
+
+vec_x_train = v.transform(k).toarray()
+vec_x_test = v.transform(kk).toarray()
+
+
+m1 = MultinomialNB()
+m1.fit(vec_x_train,kkk)
+
+y_train_pred1 = m1.predict_proba(vec_x_train)
+y_train_pred1_one = [ i[1] for i in y_train_pred1]
+
+y_test_pred1 = m1.predict_proba(vec_x_test)
+y_test_pred1_one = [ i[1] for i in y_test_pred1]
